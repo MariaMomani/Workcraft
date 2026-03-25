@@ -1,0 +1,58 @@
+﻿@model Workcraft.Models.Users
+@using System.Text.Encodings.Web
+
+<tr>
+    <td>@Model.FullName</td>
+    <td>@Model.Email</td>
+
+    <td>
+        <span class="badge @(Model.Status?.ToLower())">
+            @(Model.Status ?? "Available")
+        </span>
+    </td>
+
+    <td>
+        <form asp-action="ToggleActive"
+              asp-controller="Admin"
+              method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+
+            <button type="submit"
+                    class="toggle @(Model.IsActive ? "on" : "off")">
+                @(Model.IsActive ? "Active" : "Inactive")
+            </button>
+        </form>
+    </td>
+
+    <td class="actions">
+        <a asp-action="EmployeeDetails"
+           asp-route-id="@Model.Id"
+           class="btn view">
+            <i class="fa fa-eye"></i>
+        </a>
+
+        <button class="btn edit"
+                onclick="openEditModal(
+                    '@Model.Id',
+                    '@Html.Raw(JavaScriptEncoder.Default.Encode(Model.FullName))',
+                    '@Model.Status',
+                    '@Model.IsActive'.toLowerCase()
+                )">
+            <i class="fa fa-pen"></i>
+        </button>
+
+        <form asp-action="DeleteEmployee"
+              asp-controller="Admin"
+              method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+
+            <button type="submit"
+                    class="btn delete"
+                    onclick="return confirm('Delete this employee?');">
+                <i class="fa fa-trash"></i>
+            </button>
+        </form>
+    </td>
+</tr>

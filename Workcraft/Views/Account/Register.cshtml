@@ -1,0 +1,64 @@
+﻿@using Workcraft.ViewModels;
+@model RegisterViewModel;
+
+@{
+    ViewData["Title"] = "Register";
+    Layout = "~/Views/Shared/_AccountLayout.cshtml";
+}
+
+<div class="d-flex align-items-center justify-content-center" style="min-height: 95vh; padding: 2rem 0;">
+    <div class="account-box" style="width: 100%; max-width: 500px;">
+        <div class="text-center mb-4">
+            <h1 class="fw-bold" style="background: linear-gradient(to right, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 2.5rem;">WorkCraft</h1>
+            <p class="text-secondary">Create your administrative command center.</p>
+        </div>
+
+        <form asp-action="Register" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label small text-uppercase fw-bold text-secondary">Full Name</label>
+                <input asp-for="Name" class="form-control" placeholder="e.g. John Doe" />
+                <span asp-validation-for="Name" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label small text-uppercase fw-bold text-secondary">Email Address</label>
+                <input asp-for="Email" class="form-control" placeholder="name@workcraft.com" />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Password" class="form-label small text-uppercase fw-bold text-secondary">Password</label>
+                    <input asp-for="Password" type="password" class="form-control" placeholder="••••••••" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="ConfirmPassword" class="form-label small text-uppercase fw-bold text-secondary">Confirm</label>
+                    <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="••••••••" />
+                    <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-modern w-100 p-3 mt-3">Create Account</button>
+
+            <p class="text-center mt-4 text-secondary small">
+                Already part of the team? <a asp-controller="Account" asp-action="Login" class="text-decoration-none fw-bold text-accent-blue">Sign In</a>
+            </p>
+
+            <div class="text-center mt-2">
+                <a asp-controller="Home" asp-action="Index" class="small text-secondary text-decoration-none opacity-50">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Back to Home
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial.cshtml");
+    }
+}

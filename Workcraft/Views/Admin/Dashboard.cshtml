@@ -1,0 +1,28 @@
+﻿@model Workcraft.ViewModels.DashboardViewModel
+@{
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid py-4">
+    <h1 class="fw-bold mb-4">Command Center</h1>
+
+    <div class="dashboard-cards">
+        <div class="card shadow-sm">
+            <span><i class="fa-solid fa-users text-primary me-2"></i><br /> Total Squad</span>
+            <h2>@Model.TotalEmployees</h2>
+        </div>
+        <div class="card shadow-sm">
+            <span><i class="fa-solid fa-user-check text-success me-2"></i><br /> Available Now</span>
+            <h2>@Model.AvailableEmployees</h2>
+        </div>
+        <div class="card shadow-sm">
+            <span><i class="fa-solid fa-user-clock text-danger me-2"></i><br /> On Mission</span>
+            <h2>@Model.BusyEmployees</h2>
+        </div>
+
+        <div class="card shadow-sm">
+            <span><i class="fa-solid fa-list-check text-warning me-2"></i><br /> Active Tasks</span>
+            <h2 class="text-warning">@Model.TasksInProgress</h2>
+        </div>
+    </div>
+</div>

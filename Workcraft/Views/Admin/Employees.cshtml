@@ -1,0 +1,150 @@
+﻿@model Workcraft.Models.ViewModels.EmployeesPageViewModel
+@{
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fw-bold mb-1">Squad Management</h1>
+            <p class="text-muted small">Manage your team members and their operational status.</p>
+        </div>
+        <button class="btn btn-modern px-4 py-2 text-white" onclick="openAddModal()">
+            <i class="fa-solid fa-plus me-2"></i> Add Agent
+        </button>
+    </div>
+
+    <div class="stat-grid">
+        <div class="card shadow-sm">
+            <span><i class="fa-solid fa-users text-primary me-2"></i><br /> Total Squad</span>
+            <h3>@Model.TotalEmployees</h3>
+        </div>
+
+        <div class="card shadow-sm border-start border-success border-4">
+            <span><i class="fa-solid fa-user-check text-success me-2"></i><br /> Active</span>
+            <h3 class="text-success">@Model.ActiveEmployees</h3>
+        </div>
+
+        <div class="card shadow-sm border-start border-danger border-4">
+            <span><i class="fa-solid fa-user-clock text-danger me-2"></i><br /> Busy</span>
+            <h3 class="text-danger">@Model.BusyEmployees</h3>
+        </div>
+    </div>
+
+    <div class="glass-card p-4 shadow-sm account-box">
+        <table class="employees-table">
+            <thead>
+                <tr>
+                    <th>Agent Name</th>
+                    <th>Communication</th>
+                    <th>Status</th>
+                    <th>Operations</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var employee in Model.Employees)
+                {
+                    <tr>
+                        <td class="fw-bold">@employee.FullName</td>
+                        <td class="text-secondary">@employee.Email</td>
+                        <td>
+                            <span class="badge @(employee.Status == "Busy" ? "bg-soft-danger text-danger" : "bg-soft-success text-success") rounded-pill px-3">
+                                @(employee.Status ?? "Available")
+                            </span>
+                        </td>
+                        <td>
+                            @if (employee.IsActive)
+                            {
+                                <span class="text-success small"><i class="fa-solid fa-circle me-1" style="font-size: 8px;"></i> Online</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">Offline</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <form asp-action="ToggleActive" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@employee.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-secondary border-0">
+                                    <i class="fa-solid fa-power-off"></i>
+                                </button>
+                            </form>
+
+                            <button type="button" class="btn btn-sm btn-outline-primary border-0 edit-btn"
+                                    data-id="@employee.Id"
+                                    data-name="@employee.FullName"
+                                    data-email="@employee.Email"
+                                    data-status="@(employee.Status ?? "Available")">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+
+                            <form asp-action="DeleteEmployee" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@employee.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger border-0" onclick="return confirm('Terminate Agent access?')">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="addEmployeeModal" class="modal">
+    <div class="modal-content">
+        <h3 class="fw-bold mb-3">Add New Agent</h3>
+        <form asp-action="AddEmployee" method="post">
+            @Html.AntiForgeryToken()
+            <div class="mb-3">
+                <label class="form-label fw-bold">Full Name</label>
+                <input asp-for="NewEmployee.FullName" class="form-control" placeholder="John Doe" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Email Address</label>
+                <input asp-for="NewEmployee.Email" class="form-control" placeholder="john@workcraft.com" required />
+            </div>
+            <div class="d-flex gap-2 mt-4">
+                <button type="button" class="btn btn-outline-secondary w-100" onclick="closeAddModal()">Cancel</button>
+                <button type="submit" class="btn btn-modern w-100 text-white">Save Agent</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="editEmployeeModal" class="modal">
+    <div class="modal-content">
+        <h3 class="fw-bold mb-3">Edit Agent Details</h3>
+        <form asp-action="EditEmployee" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="editId" name="Id" />
+            <div class="mb-3">
+                <label class="small fw-bold text-uppercase text-muted">Full Name</label>
+                <input type="text" id="editFullName" name="FullName" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label class="small fw-bold text-uppercase text-muted">Email</label>
+                <input type="email" id="editEmail" name="Email" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label class="small fw-bold text-uppercase text-muted">Current Status</label>
+                <select id="editStatus" name="Status" class="form-select">
+                    <option value="Available">Available</option>
+                    <option value="Busy">Busy</option>
+                </select>
+            </div>
+            <div class="d-flex gap-2 mt-4">
+                <button type="button" class="btn btn-light w-100" onclick="closeEditModal()">Cancel</button>
+                <button type="submit" class="btn btn-modern w-100 text-white">Update Info</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/employees.js"></script>
+}

@@ -1,0 +1,214 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Workcraft.Models  @* Add this to find your Users class *@
+@inject SignInManager<Users> SignInManager
+@inject UserManager<Users> UserManager
+@model Workcraft.ViewModels.CompanyInfoViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WorkCraft | Virtual Company Solutions</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/home-modern.css">
+
+  </head>
+  <body>
+
+    <div class="app-container" id="public-home-page">
+          <nav class="sidebar">
+              <div>
+                  <div class="fa-solid fa-cube">
+                      <span>WorkCraft</span>
+                  </div>
+                  <ul class="nav-links">
+                    <li><a href="#hero" class="nav-link active"><i class="fa-solid fa-house"></i> <span>Home</span></a></li>
+                    <li><a href="#about" class="nav-link"><i class="fa-solid fa-users"></i> <span>About</span></a></li>
+                    <li><a href="#features" class="nav-link"><i class="fa-solid fa-briefcase"></i> <span>Features</span></a></li>
+                    <li><a href="#gallery" class="nav-link"><i class="fa-solid fa-images"></i> <span>Gallery</span></a></li>
+                    <li><a href="#contact" class="nav-link"><i class="fa-solid fa-envelope"></i> <span>Contact</span></a></li>
+                </ul>
+              </div>
+          </nav>
+
+        <main class="main-content">
+            <header>
+                <div class="header-actions">
+                    <button class="btn btn-ghost" id="theme-toggle" aria-label="Toggle Theme">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                </div>
+            </header>
+
+            <section id="hero" class="hero">
+                <div class="hero-content">
+                    <h1>Streamline Your Virtual Workforce</h1>
+                    <p>WorkCraft connects bosses and employees seamlessly. Assign tasks, track progress, and build a culture of productivity from anywhere in the world.</p>
+                    <div class="hero-buttons">
+                        @if(SignInManager.IsSignedIn(User))
+                        {
+                            @if(User.IsInRole("Admin"))
+                            {
+                                <a asp-controller="Admin" asp-action="Index" class="btn btn-primary">
+                                    <i class="fa-solid fa-gauge"></i> Go to Dashboard
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-controller="Home" asp-action="User" class="btn btn-primary">
+                                    <i class="fa-solid fa-user"></i> My Workspace
+                                </a>
+                            }
+                        }
+                        else
+                        {
+                            <a href="/Account/Register" class="btn btn-primary">
+                                <i class="fa-solid fa-user-plus"></i> Create Account 
+                            </a>
+
+                            <a href="/Account/Login" class="btn btn-outline">
+                                <i class="fa-solid fa-right-to-bracket"></i> Login
+                            </a>
+                        }
+                    </div>
+                    <p class="hero-note">No setup required <br />Start managing your team instantly</p>
+                </div>
+            </section>
+
+            <section id="about">
+                <div class="section-header">
+                    <h2>Who Are We?</h2>
+                    <p>Bridging the gap between the managemnt and execut:</p>
+                </div>
+            </section>
+
+            <section id="features" class="section">
+                <div class="section-header">
+                    <h2>Powerful Features</h2>
+                    <p>Everything you need to manage your virtual team efficiently.</p>
+                </div>
+
+                <div class="feature-grid">
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fa-solid fa-list-check"></i>
+                        </div>
+                        <h4>Task Management</h4>
+                        <p>Create, assign, and track tasks with deadlines and priorities.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fa-solid fa-user-clock"></i>
+                        </div>
+                        <h4>Live Status Tracking</h4>
+                        <p>Employees update their status (Available, Busy, Break) in real-time.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fa-solid fa-user-shield"></i>
+                        </div>
+                        <h4>Admin Control</h4>
+                        <p>Admins monitor employees, assign work, and control availability.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <h4>Productivity Insights</h4>
+                        <p>Track progress and performance across your entire team.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <h4>Team Management</h4>
+                        <p>Manage employees, roles, and responsibilities in one place.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fa-solid fa-globe"></i>
+                        </div>
+                        <h4>Work Anywhere</h4>
+                        <p>Access your workspace from anywhere in the world.</p>
+                    </div>
+
+                </div>
+            </section>
+
+            <section id="contact" class="section">
+                <div class="section-header">
+                    <h2>Contact Us</h2>
+                    <p>Have questions? We'd love to hear from you.</p>
+                </div>
+
+                <div class="contact-container">
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert-success">
+                            @TempData["Success"]
+                        </div>
+                    }
+
+                    <div class="contact-info">
+                        <h4>Get in touch</h4>
+                        <p>Feel free to reach out for support, feedback, or business inquiries.</p>
+
+                        <div class="contact-item">
+                            <i class="fa-solid fa-envelope"></i>
+                            <span>support@workcraft.com</span>
+                        </div>
+
+                        <div class="contact-item">
+                            <i class="fa-solid fa-phone"></i>
+                            <span>+962 7 9000 0000</span>
+                        </div>
+
+                        <div class="contact-item">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <span>Amman, Jordan</span>
+                        </div>
+                    </div>
+
+                    <div class="contact-form">
+                        <form asp-controller="Home" asp-action="Contact" method="post">
+                            @Html.AntiForgeryToken()
+
+                            <div class="form-group">
+                                <input type="text" name="Name" placeholder="Your Name" required />
+                            </div>
+
+                            <div class="form-group">
+                                <input type="email" name="Email" placeholder="Your Email" required />
+                            </div>
+
+                            <div class="form-group">
+                                <textarea name="Message" rows="5" placeholder="Your Message" required></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fa-solid fa-paper-plane"></i> Send Message
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+            </section>
+        </main>
+      </div>
+
+  </body>
+</html>

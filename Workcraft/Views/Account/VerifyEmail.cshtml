@@ -1,0 +1,41 @@
+﻿@using Workcraft.ViewModels;
+@model VerifyEmailViewModel;
+
+@{
+    ViewData["Title"] = "VerifyEmail";
+    Layout = "~/Views/Shared/_AccountLayout.cshtml";
+}
+
+<div class="account-container">
+    <div class="account-box">
+        <div class="text-center mb-4">
+            <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                <i class="fa-solid fa-envelope-open-text text-primary fs-4"></i>
+            </div>
+            <h2 class="mb-2">Verify Email</h2>
+            <p class="text-muted small">Enter your email to receive a verification link.</p>
+        </div>
+
+        <form asp-action="VerifyEmail" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+            <div class="mb-4">
+                <label asp-for="Email" class="form-label">Recovery Email</label>
+                <input asp-for="Email" class="form-control" placeholder="name@workcraft.com" />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+
+            <button type="submit" class="btn btn-security w-100 mb-3">Send Link</button>
+
+            <div class="text-center">
+                <a asp-action="Login" class="text-muted small text-decoration-none">Back to Login</a>
+            </div>
+        </form>
+    </div>
+</div>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial.cshtml");
+    }
+}

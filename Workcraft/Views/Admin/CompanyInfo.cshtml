@@ -1,0 +1,131 @@
+﻿@model Workcraft.ViewModels.CompanyInfoViewModel
+@{
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <h1 class="fw-bold mb-1">Company Information</h1>
+        <p class="text-muted small">Manage your organization's public identity and legal details.</p>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success border-0 shadow-sm mb-4">
+            <i class="fa-solid fa-circle-check me-2"></i> @TempData["Success"]
+        </div>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card profile-card border-0 shadow-sm p-4 text-center">
+                <div class="mb-3">
+                    <div class="avatar-circle bg-soft-primary">
+                        <i class="fa-solid fa-building text-primary"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold mb-1">@Model.CompanyName</h4>
+                <p class="text-muted small">@Model.Industry | @Model.CompanySize Employees</p>
+
+                <div class="mt-4 pt-3 border-top text-start">
+                    <label class="profile-label">Website</label>
+                    <a href="https://@Model.Website" target="_blank" class="text-primary text-decoration-none fw-bold small">
+                        <i class="fa-solid fa-globe me-1"></i> @Model.Website
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card profile-card border-0 shadow-sm p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">Operational Details</h5>
+                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="openEditCompanyModal()">
+                        <i class="fa-solid fa-gear me-1"></i> Update Info
+                    </button>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="profile-label">Legal Name</label>
+                        <p class="profile-value">@Model.LegalName</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="profile-label">Tax ID / Registration</label>
+                        <p class="profile-value">@Model.TaxId</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="profile-label">Primary Contact</label>
+                        <p class="profile-value">@Model.ContactEmail</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="profile-label">Headquarters</label>
+                        <p class="profile-value">@Model.Address</p>
+                    </div>
+                </div>
+
+                <div class="mt-4 p-3 bg-light rounded-3 d-flex align-items-center">
+                    <i class="fa-solid fa-shield-halved text-success fs-4 me-3"></i>
+                    <div>
+                        <p class="mb-0 fw-bold small">Verified Organization</p>
+                        <p class="mb-0 text-muted extra-small">This information is used for official reports and system billing.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="editCompanyModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <h3 class="fw-bold mb-3">Update Company Info</h3>
+        <form asp-action="UpdateCompany" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="small fw-bold text-uppercase text-muted">Company Name</label>
+                    <input asp-for="CompanyName" class="form-control" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="small fw-bold text-uppercase text-muted">Legal Name</label>
+                    <input asp-for="LegalName" class="form-control" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="small fw-bold text-uppercase text-muted">Tax ID</label>
+                    <input asp-for="TaxId" class="form-control" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <a href="@(string.IsNullOrEmpty(Model.Website) ? "#" : "https://" + Model.Website)" ...>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="small fw-bold text-uppercase text-muted">Contact Email</label>
+                <input asp-for="ContactEmail" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label class="small fw-bold text-uppercase text-muted">Headquarters Address</label>
+                <textarea asp-for="Address" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="button" class="btn btn-light w-100" onclick="closeCompanyModal()">Cancel</button>
+                <button type="submit" class="btn btn-modern w-100 text-white">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openEditCompanyModal() {
+        document.getElementById('editCompanyModal').style.display = 'flex';
+    }
+    function closeCompanyModal() {
+        document.getElementById('editCompanyModal').style.display = 'none';
+    }
+</script>

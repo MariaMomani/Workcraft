@@ -1,0 +1,43 @@
+﻿<link rel="stylesheet" href="~/css/admin.css" />
+
+<aside class="admin-sidebar-modern">
+    <div class="logo-section">
+        <div class="logo-circle">AD</div>
+        <span class="logo-text">WorkCraft</span>
+    </div>
+
+    <nav class="menu-list">
+        <a asp-controller="Admin" asp-action="Dashboard"
+           class="menu-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")">
+            <i class="fa-solid fa-chart-pie"></i> Dashboard
+        </a>
+        <a asp-controller="Admin" asp-action="Employees"
+           class="menu-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Employees" ? "active" : "")">
+            <i class="fa-solid fa-users-gear"></i> Manage Employees
+        </a>
+        <a asp-controller="Admin" asp-action="Tasks"
+           class="menu-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Tasks" ? "active" : "")">
+            <i class="fa-solid fa-list-check"></i> Add Tasks
+        </a>
+        <a asp-controller="Admin" asp-action="Profile"
+           class="menu-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Profile" ? "active" : "")">
+            <i class="fa-solid fa-user-shield"></i> Admin Profile
+        </a>
+        <a asp-controller="Admin" asp-action="CompanyInfo"
+           class="menu-item @(ViewContext.RouteData.Values["action"]?.ToString() == "CompanyInfo" ? "active" : "")">
+            <i class="fa-solid fa-building-user"></i> Company Info
+        </a>
+        <a asp-controller="Admin" asp-action="Messages" class="menu-item">
+            <i class="fa-solid fa-envelope"></i> Messages
+        </a>
+    </nav>
+
+    <div class="logout-section">
+        <form asp-controller="Account" asp-action="Logout" method="post">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="logout-button">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </button>
+        </form>
+    </div>
+</aside>

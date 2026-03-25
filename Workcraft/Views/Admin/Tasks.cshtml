@@ -1,0 +1,82 @@
+﻿@model Workcraft.ViewModels.TaskManagementViewModel
+@{
+    Layout = "_AdminLayout";
+}
+
+<h2>Create New Task</h2>
+
+<form asp-action="CreateTask" asp-controller="Admin" method="post">
+    @Html.AntiForgeryToken()
+
+    <div>
+        <label>Title</label>
+        <input asp-for="Title" class="form-control" />
+    </div>
+
+    <div>
+        <label>Description</label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+    </div>
+
+    <div>
+        <label>Due Date</label>
+        <input asp-for="DueDate" type="date" class="form-control" />
+    </div>
+
+    <div>
+        <label>Assign To</label>
+        <select asp-for="AssignedToId"
+                asp-items="Model.Employees"
+                class="form-control">
+            <option value="">-- Select Employee --</option>
+        </select>
+    </div>
+
+    <br />
+    <button type="submit" class="btn btn-primary">
+        Create Task
+    </button>
+</form>
+
+<hr />
+
+<h2>Tasks Management</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Employee</th>
+            <th>Status</th>
+            <th>Due Date</th>
+            <th>Change Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var task in Model.Tasks)
+        {
+            <tr>
+                <td>@task.Title</td>
+                <td>@task.AssignedTo?.FullName</td>
+                <td>@task.Status</td>
+                <td>@task.DueDate?.ToShortDateString()</td>
+                <td>
+                    <form asp-action="ChangeTaskStatus" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="taskId" value="@task.Id" />
+
+                        <select name="status" class="form-control form-control-sm">
+                            <option value="Pending">Pending</option>
+                            <option value="InProgress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+
+                        <button type="submit" class="btn btn-sm btn-success mt-1">
+                            Update
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

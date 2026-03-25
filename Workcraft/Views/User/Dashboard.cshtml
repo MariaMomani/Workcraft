@@ -1,0 +1,85 @@
+﻿@{
+    Layout = "_UserLayout";
+    ViewData["Title"] = "User Dashboard";
+}
+
+<header class="user-header">
+    <h1>Welcome back, @User.Identity.Name! 👋</h1>
+    <p>You have 0 tasks to focus on today. | @DateTime.Now.ToString("MMMM dd, yyyy")</p>
+</header>
+
+
+<div class="user-stats-grid">
+    <div class="stat-card">
+        <div>
+            <i class="fa-solid fa-layer-group"></i>
+            <div class="stat-label">Total Tasks</div>
+        </div>
+        <h2 class="stat-value">0</h2>
+    </div>
+
+    <div class="stat-card">
+        <div>
+            <i class="fa-solid fa-circle-check"></i>
+            <div class="stat-label">Completed</div>
+        </div>
+        <h2 class="stat-value">0</h2>
+    </div>
+
+    <div class="stat-card">
+        <div>
+            <i class="fa-solid fa-spinner"></i>
+            <div class="stat-label">In Progress</div>
+        </div>
+        <h2 class="stat-value">0</h2>
+    </div>
+
+    <div class="stat-card">
+        <div>
+            <i class="fa-solid fa-chart-pie"></i>
+            <div class="stat-label">Success Rate</div>
+        </div>
+        <h2 class="stat-value">0%</h2>
+    </div>
+</div>
+<br />
+<br />
+<div class="status-card">
+
+    <h5 class="fw-bold mb-3">Your Status</h5>
+
+    <div class="status-grid">
+
+        <button class="status-btn" onclick="changeStatus('Available')">
+            <i class="fa-solid fa-circle-check"></i>
+            Available
+        </button>
+
+        <button class="status-btn" onclick="changeStatus('Busy')">
+            <i class="fa-solid fa-briefcase"></i>
+            Busy
+        </button>
+
+        <button class="status-btn" onclick="changeStatus('Break')">
+            <i class="fa-solid fa-mug-hot"></i>
+            On Break
+        </button>
+
+        <button class="status-btn" onclick="changeStatus('Offline')">
+            <i class="fa-solid fa-moon"></i>
+            Offline
+        </button>
+
+    </div>
+
+</div>
+
+<div style="margin-top: 30px;">
+    <a href="#" class="btn-modern" style="padding: 10px 20px; text-decoration: none; color: white; display: inline-block;">
+        View My Tasks <i class="fa-solid fa-arrow-right"></i>
+    </a>
+</div>
+
+@section Scripts{
+    <script src="~/js/status.js"></script>
+}
