@@ -6,8 +6,24 @@
 <header class="user-header">
     <h1>Welcome back, @User.Identity.Name! 👋</h1>
     <p>You have 0 tasks to focus on today. | @DateTime.Now.ToString("MMMM dd, yyyy")</p>
+    <div class="user-status-display">
+        <span id="currentStatus" class="status-badge">Available</span>
+    </div>
 </header>
 
+@if (ViewBag.Notifications != null)
+{
+    <div class="mb-3">
+        <h5>Notifications 🔔</h5>
+
+        @foreach (var n in ViewBag.Notifications)
+        {
+            <div class="alert alert-info p-2 mb-2">
+                @n.Message
+            </div>
+        }
+    </div>
+}
 
 <div class="user-stats-grid">
     <div class="stat-card">

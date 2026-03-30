@@ -7,7 +7,7 @@ namespace Workcraft.Models
     {
         [Required]
         public string FullName { get; set; }
-        public string? Status { get; set; }
+        public string? Status { get; set; } = "Available";
         public string? StatusNote { get; set; }
 
 

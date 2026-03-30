@@ -20,10 +20,11 @@ body {
 .user-container {
     display: flex;
     min-height: 100vh;
+    background-color: #f7f7f7;
 }
 
 .user-sidebar {
-    width: 260px;
+    width: 280px;
     background-color: #ffffff;
     border-right: 1px solid #e2e8f0;
     padding: 30px 20px;
@@ -122,11 +123,13 @@ body {
 .user-header {
     position: sticky;
     top: 0;
-    background-color: #f8fafc; 
-    padding: 30px 0 20px 0;
+    width: 1165px;
+    background-color: #efefef; 
+    padding: 30px 15px 20px 15px;
     z-index: 100;
     border-bottom: 1px solid #e2e8f0;
     margin-bottom: 30px;
+    margin-left: -20px;
 }
 
     .user-header h1 {
@@ -278,6 +281,7 @@ body {
 }
 
 .status-grid {
+    width: 300px;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
@@ -285,6 +289,7 @@ body {
 
 .status-btn {
     border: 1px solid #e2e8f0;
+    width: 200px;
     background: white;
     padding: 12px;
     border-radius: 10px;
@@ -309,3 +314,17 @@ body {
         background: #f0fdf4;
         color: #15803d;
     }
+
+.user-status-display {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    background-color: #28a745;
+    color: white;
+    font-weight: bold;
+}

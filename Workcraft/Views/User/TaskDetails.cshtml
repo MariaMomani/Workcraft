@@ -1,0 +1,85 @@
+﻿@model List<Workcraft.Models.TaskItem>
+@using Workcraft.Models.Enums
+@{
+    Layout = "_UserLayout";
+}
+
+<div class="container mt-4">
+    <h2 class="fw-bold mb-4">My Tasks</h2>
+
+    @if(!Model.Any())
+    {
+        <div class="alert alert-info">
+            No Tasks assigend to you yet.
+        </div>
+    }
+    else
+    {
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach(var task in Model)
+                {
+                    <tr>
+                        <td class="fw-bold">@task.Title</td>
+                        <td class="text-muted">@task.Description</td>
+                        <td>
+                            @(task.DueDate.HasValue
+                                 ? task.DueDate.Value.ToString("yyyy-MM-dd")
+                                   : "No deadline")
+                        </td>
+                        <td>
+                            @if(task.Status == WorkTaskStatus.Pending)
+                            {
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            }
+                            else if(task.Status == WorkTaskStatus.InProgress)
+                            {
+                                <span class="badge bg-primary">In Progress</span>
+                            }
+                            else if(task.Status == WorkTaskStatus.Completed)
+                            {
+                                <span class="badge bg-success">Completed</span>
+                            }
+                            else if(task.
+                            Status == WorkTaskStatus.Rejected)
+                            {
+                                <span class="badge bg-danger">Rejected</span>
+                            }
+                        </td>
+                        
+                        <td class="text-center">
+                            @if(task.Status == WorkTaskStatus.Pending)
+                            {
+                                <form asp-action="AcceptTask" method="post" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="taskId" value="@task.Id" />
+                                    <button type="submit" class="btn btn-sm btn-success">Accept</button>
+                                </form>
+
+                                <form asp-action="RejectTask" method="post" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="taskId" value="@task.Id" />
+                                    <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="text-muted">No Action</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

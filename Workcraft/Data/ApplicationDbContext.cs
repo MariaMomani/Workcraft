@@ -22,5 +22,6 @@ namespace Workcraft.Data
         public DbSet<TaskItem> TaskItems { get; set; }
         public DbSet<CompanySettings> CompanySettings { get; set; }
         public DbSet<ContactMessage> ContactMessages { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
     }
 }

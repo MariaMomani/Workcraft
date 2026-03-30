@@ -50,6 +50,12 @@ namespace Workcraft.Controllers
             ViewBag.InProgressTasks = inProgress;
             ViewBag.CompletionRate = Math.Round(rate);
 
+            var notifications = await _context.Notifications
+                .Where(n => n.UserId == userId && !n.IsRead)
+                .OrderByDescending(n => n.CreatedAt)
+                .ToListAsync();
+
+            ViewBag.Notifications = notifications;
             return View();
         }
 
@@ -91,6 +97,45 @@ namespace Workcraft.Controllers
         //    return RedirectToAction(nameof(MyTasks));
         //}
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AcceptTask(int taskId)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            var task = await _context.TaskItems.FindAsync(taskId);
+
+            if(task == null || task.AssignedToId != userId)
+                return NotFound();
+
+            task.Status = WorkTaskStatus.InProgress;
+
+            await _context.SaveChangesAsync();
+
+            await _statusService.UpdateEmployeeStatusAsync(userId);
+
+            return RedirectToAction(nameof(TaskDetails));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectTask(int taskId)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            var task = await _context.TaskItems.FindAsync(taskId);
+
+            if(task == null || task.AssignedToId != userId)
+                return NotFound();
+
+            task.Status = WorkTaskStatus.Rejected;
+
+            await _context.SaveChangesAsync();
+
+            await _statusService.UpdateEmployeeStatusAsync(userId);
+
+            return RedirectToAction(nameof(TaskDetails));
+        }
 
         [Authorize]
         public async Task<IActionResult> Profile()
@@ -133,19 +178,20 @@ namespace Workcraft.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateStatus([FromBody] StatusViewModel model)
+        [ValidateAntiForgeryToken]
+        public IActionResult UpdateStatus([FromBody] StatusViewModel model)
         {
-            var user = await _userManager.GetUserAsync(User);
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-            if (user == null)
-                return Json(new { success = false });
+            var user = _context.Users.Find(userId);
 
-            user.Status = model.Status;
-            user.UpdatedAt = DateTime.UtcNow;
+            if (user != null)
+            {
+                user.Status = model.Status;
+                _context.SaveChanges();
+            }
 
-            await _userManager.UpdateAsync(user);
-
-            return Json(new { success = true });
+            return Json(new {success = true});
         }
     }
 }

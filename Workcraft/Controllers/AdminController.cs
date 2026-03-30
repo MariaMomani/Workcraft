@@ -87,7 +87,8 @@ namespace Workcraft.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return await Employees();
+                model.Employees = _userManager.Users.ToList();
+                return View("Employees", model);
             }
 
             var user = new Users
@@ -100,14 +101,24 @@ namespace Workcraft.Controllers
                 CreatedAt = DateTime.UtcNow
             };
 
-            var result = await _userManager.CreateAsync(user, "Default@123");
+            var result = await _userManager.CreateAsync(user, model.NewEmployee.Password);
 
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(user, "User");
+
+                TempData["Success"] = "Agent created successfully!";
+                return RedirectToAction("Employees");
             }
 
-            return RedirectToAction(nameof(Employees));
+            model.Employees = _userManager.Users.ToList();
+
+            foreach (var error in result.Errors)
+            {
+                TempData["Error"] = error.Description;
+            }
+
+            return View("Employees", model);
         }
 
         [HttpPost]
@@ -220,7 +231,13 @@ namespace Workcraft.Controllers
             _context.TaskItems.Add(task);
             await _context.SaveChangesAsync();
 
-            await _statusService.UpdateEmployeeStatusAsync(task.AssignedToId);
+            _context.Notifications.Add(new Notification
+            {
+                UserId = task.AssignedToId,
+                Message = $"New task assigned: {task.Title}",
+            });
+
+            await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Tasks));
         }
