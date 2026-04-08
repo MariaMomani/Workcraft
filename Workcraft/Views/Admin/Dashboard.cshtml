@@ -75,7 +75,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-        const completedData = @Html.Raw(Json.Serialize(Model.WeeklyCompleted));
+        // const completedData = @Html.Raw(Json.Serialize(Model.WeeklyCompleted));
         const inProgressData = @Html.Raw(Json.Serialize(Model.WeeklyInProgress));
 
         const ctx = document.getElementById('productivityChart');
@@ -86,14 +86,14 @@
                 data: {
                     labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                     datasets: [
-                        {
-                            label: 'Completed Tasks',
-                            data: completedData,
-                            borderColor: '#4e73df',
-                            backgroundColor: 'rgba(78,115,223,0.1)',
-                            fill: true,
-                            tension: 0.4
-                        },
+                        // {
+                        //     label: 'Completed Tasks',
+                        //     data: completedData,
+                        //     borderColor: '#4e73df',
+                        //     backgroundColor: 'rgba(78,115,223,0.1)',
+                        //     fill: true,
+                        //     tension: 0.4
+                        // },
                         {
                             label: 'In Progress',
                             data: inProgressData,

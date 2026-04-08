@@ -1,0 +1,258 @@
+﻿.messages-page {
+    padding: 1.5rem;
+}
+
+/* page header */
+.messages-page-header {
+    margin-bottom: 1.75rem;
+}
+
+    .messages-page-header h1 {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0 0 4px;
+        color: #1e293b;
+    }
+
+    .messages-page-header p {
+        font-size: 14px;
+        color: #64748b;
+        margin: 0;
+    }
+
+/* search + filter row */
+.msg-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 1.25rem;
+}
+
+    .msg-controls h2 {
+        font-size: 17px;
+        font-weight: 700;
+        margin: 0;
+        color: #1e293b;
+    }
+
+.msg-search {
+    position: relative;
+}
+
+    .msg-search i {
+        position: absolute;
+        left: 11px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 13px;
+        pointer-events: none;
+    }
+
+    .msg-search input {
+        padding: 8px 12px 8px 32px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 14px;
+        width: 220px;
+        outline: none;
+        background: #fff;
+        color: #1e293b;
+        font-family: inherit;
+    }
+
+        .msg-search input:focus {
+            border-color: #2563eb;
+        }
+
+/* cards grid */
+.msg-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+/* single message card */
+.msg-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: box-shadow .2s;
+}
+
+    .msg-card:hover {
+        box-shadow: 0 4px 20px rgba(0,0,0,.08);
+    }
+
+.msg-card-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.msg-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* avatar colours — cycles through same palette as employees */
+.av-blue {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.av-green {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.av-yellow {
+    background: #fef9c3;
+    color: #854d0e;
+}
+
+.av-purple {
+    background: #f3e8ff;
+    color: #6b21a8;
+}
+
+.av-pink {
+    background: #fce7f3;
+    color: #9d174d;
+}
+
+.av-orange {
+    background: #ffedd5;
+    color: #9a3412;
+}
+
+.av-teal {
+    background: #ccfbf1;
+    color: #134e4a;
+}
+
+.av-red {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.msg-sender-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 2px;
+}
+
+.msg-sender-email {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0;
+}
+
+.msg-date-badge {
+    margin-left: auto;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+.msg-divider {
+    border: none;
+    border-top: 1px solid #f1f5f9;
+    margin: 0;
+}
+
+.msg-body {
+    font-size: 14px;
+    color: #334155;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.msg-card-footer {
+    display: flex;
+    gap: 8px;
+}
+
+.msg-reply-btn {
+    flex: 1;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 0;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background .15s;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+    .msg-reply-btn:hover {
+        background: #1d4ed8;
+        color: #fff;
+    }
+
+.msg-copy-btn {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 14px;
+    transition: background .15s;
+}
+
+    .msg-copy-btn:hover {
+        background: #f1f5f9;
+        color: #1e293b;
+    }
+
+/* empty state */
+.msg-empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #94a3b8;
+}
+
+    .msg-empty i {
+        font-size: 48px;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .msg-empty p {
+        font-size: 16px;
+        margin: 0;
+    }
+
+.msg-hidden {
+    display: none !important;
+}

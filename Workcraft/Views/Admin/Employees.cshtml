@@ -5,123 +5,176 @@
 
 @if (TempData["Success"] != null)
 {
-    <div class="alert alert-success">
-        @TempData["Success"]
+    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 mb-3" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
 
 @if (TempData["Error"] != null)
 {
-    <div class="alert alert-danger">
-        @TempData["Error"]
+    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 mb-3" role="alert">
+        <i class="fa-solid fa-circle-xmark me-2"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
 
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="squad-page">
+
+
+    <div class="d-flex justify-content-between align-items-start mb-4">
         <div>
-            <h1 class="fw-bold mb-1">Squad Management</h1>
-            <p class="text-muted small">Manage your team members and their operational status.</p>
+            <h1 class="fw-bold mb-1" style="font-size:24px">Squad Management</h1>
+            <p class="text-muted small mb-0">Manage your team members and their operational status.</p>
         </div>
-        <button class="btn btn-modern px-4 py-2 text-white" onclick="openAddModal()">
-            <i class="fa-solid fa-plus me-2"></i> Add Agent
+        <button class="btn-add-agent" onclick="openAddModal()">
+            <i class="fa-solid fa-plus"></i> Add Agent
         </button>
     </div>
 
-    <div class="stat-grid">
-        <div class="card shadow-sm">
-            <span><i class="fa-solid fa-users text-primary me-2"></i><br /> Total Squad</span>
-            <h3>@Model.TotalEmployees</h3>
-        </div>
 
-        <div class="card shadow-sm border-start border-success border-4">
-            <span><i class="fa-solid fa-user-check text-success me-2"></i><br /> Active</span>
-            <h3 class="text-success">@Model.ActiveEmployees</h3>
+    <div class="stat-grid-new">
+        <div class="stat-card-new">
+            <div class="stat-label"><i class="fa-solid fa-users me-1 text-primary"></i> Total Squad</div>
+            <p class="stat-value">@Model.TotalEmployees</p>
         </div>
-
-        <div class="card shadow-sm border-start border-danger border-4">
-            <span><i class="fa-solid fa-user-clock text-danger me-2"></i><br /> Busy</span>
-            <h3 class="text-danger">@Model.BusyEmployees</h3>
+        <div class="stat-card-new">
+            <div class="stat-label"><i class="fa-solid fa-user-check me-1 text-success"></i> Active</div>
+            <p class="stat-value" style="color:#22c55e">@Model.ActiveEmployees</p>
+        </div>
+        <div class="stat-card-new">
+            <div class="stat-label"><i class="fa-solid fa-user-clock me-1 text-danger"></i> Busy</div>
+            <p class="stat-value" style="color:#ef4444">@Model.BusyEmployees</p>
         </div>
     </div>
 
-    <div class="glass-card p-4 shadow-sm account-box">
-        <table class="employees-table">
-            <thead>
-                <tr>
-                    <th>Agent Name</th>
-                    <th>Position</th>
-                    <th>Communication</th>
-                    <th>Status</th>
-                    <th class="text-end">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var employee in Model.Employees)
-                {
-                    <tr>
-                        <td class="fw-bold">@employee.FullName</td>
-                        <td class="text-secondary">@employee.Position</td>
-                        <td class="text-secondary">@employee.Email</td>
-                        <td>
-                            @{
-                                var statusClass = employee.Status switch
-                                {
-                                    "Available" => "bg-soft-success text-success",
-                                    "Busy" => "bg-soft-danger text-danger",
-                                    "Break" => "bg-soft-warning text-warning",
-                                    "Offline" => "bg-soft-secondary text-secondary",
-                                    _ => "bg-soft-success text-success"
-                                };
-                            }
-                            <span class="badge @statusClass rounded-pill px-3">
-                                @(employee.Status ?? "Available")
-                            </span>
-                        </td>
-                        <td class="text-end">
-                            <button type="button" class="btn btn-sm btn-outline-primary border-0 edit-btn"
-                                    data-id="@employee.Id"
-                                    data-name="@employee.FullName"
-                                    data-email="@employee.Email"
-                                    data-status="@(employee.Status ?? "Available")"
-                                    data-position="@employee.Position">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </button>
 
-                            <form asp-action="DeleteEmployee" method="post" style="display:inline;">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@employee.Id" />
-                                <button type="submit" class="btn btn-sm btn-outline-danger border-0" onclick="return confirm('Terminate Agent access?')">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <div class="team-header">
+        <h2>Team Members</h2>
+        <div class="team-controls">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="Search employees..." oninput="filterCards()" />
+            </div>
+            <div class="filter-group">
+                <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+                <button class="filter-btn" onclick="setFilter('available', this)">Available</button>
+                <button class="filter-btn" onclick="setFilter('busy', this)">Busy</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="cards-grid" id="cardsGrid">
+        @{
+            string[] avColors = { "av-blue", "av-green", "av-yellow", "av-purple", "av-pink", "av-orange", "av-teal", "av-red" };
+            int colorIdx = 0;
+        }
+        @foreach (var employee in Model.Employees)
+        {
+            var status = employee.Status ?? "Available";
+            var statusLower = status.ToLower();
+            var dotClass = statusLower switch
+            {
+                "available" => "dot-available",
+                "busy" => "dot-busy",
+                "break" => "dot-break",
+                _ => "dot-offline"
+            };
+            var statusColor = statusLower switch
+            {
+                "available" => "#16a34a",
+                "busy" => "#b45309",
+                "break" => "#b45309",
+                _ => "#6c757d"
+            };
+            var avColor = avColors[colorIdx % avColors.Length];
+            colorIdx++;
+            var initials = string.Concat(
+            employee.FullName.Split(' ', System.StringSplitOptions.RemoveEmptyEntries)
+            .Take(2).Select(w => w[0].ToString().ToUpper()));
+
+            <div class="emp-card" data-status="@statusLower" data-name="@employee.FullName.ToLower()">
+                <div class="emp-card-header">
+                    <div class="avatar-circle @avColor">
+                        @initials
+                        <span class="avatar-dot @dotClass"></span>
+                    </div>
+                    <div>
+                        <p class="emp-name">@employee.FullName</p>
+                        <p class="emp-role">@employee.Position</p>
+                        <p class="emp-status-line">
+                            <span class="status-dot-inline @dotClass"></span>
+                            <span style="color:@statusColor">@status</span>
+                        </p>
+                    </div>
+                </div>
+
+                <hr class="emp-divider" />
+
+                <div class="emp-stat-row">
+                    <span>Active Tasks</span>
+                    <span>—</span>
+                </div>
+                <div class="emp-stat-row">
+                    <span>Completed</span>
+                    <span>—</span>
+                </div>
+                <div class="emp-stat-row">
+                    <span>Email</span>
+                    <span style="font-size:12px; font-weight:400; color:#6c757d">@employee.Email</span>
+                </div>
+
+                <div class="emp-card-actions">
+                    <button class="btn-view-profile edit-btn"
+                            data-id="@employee.Id"
+                            data-name="@employee.FullName"
+                            data-email="@employee.Email"
+                            data-status="@status"
+                            data-position="@employee.Position">
+                        View Profile
+                    </button>
+
+                    <a class="btn-icon-action" href="mailto:@employee.Email" title="Email">
+                        <i class="fa-regular fa-envelope"></i>
+                    </a>
+
+                    <form asp-action="DeleteEmployee" method="post" style="margin:0">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@employee.Id" />
+                        <button type="submit" class="btn-icon-action"
+                                title="Delete"
+                                style="color:#ef4444"
+                                onclick="return confirm('Terminate Agent access?')">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
     </div>
 </div>
 
-<div id="addEmployeeModal" class="modal">
-    <div class="modal-content">
-        <h3 class="fw-bold mb-3">Add New Agent</h3>
+
+<div id="addEmployeeModal" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Add New Agent</h3>
         <form asp-action="AddEmployee" method="post">
             @Html.AntiForgeryToken()
             <div class="mb-3">
-                <label class="form-label fw-bold">Full Name</label>
+                <label class="form-label">Full Name</label>
                 <input asp-for="NewEmployee.FullName" class="form-control" placeholder="John Doe" required />
             </div>
             <div class="mb-3">
-                <label class="form-label fw-bold">Email Address</label>
+                <label class="form-label">Email Address</label>
                 <input asp-for="NewEmployee.Email" class="form-control" placeholder="john@workcraft.com" required />
             </div>
             <div class="mb-3">
-                <label class="form-label fw-bold">Temp Password</label>
+                <label class="form-label">Temp Password</label>
                 <input asp-for="NewEmployee.Password" type="password" class="form-control" placeholder="Enter a temporary password" required />
             </div>
             <div class="mb-3">
-                <label class="form-label fw-bold">Position</label>
+                <label class="form-label">Position</label>
                 <select asp-for="NewEmployee.Position" class="form-select">
                     <option value="">-- Select Position --</option>
                     @foreach (var pos in Workcraft.Helpers.PositionHelper.Positions)
@@ -129,38 +182,33 @@
                         <option value="@pos">@pos</option>
                     }
                 </select>
-                <span asp-validation-for="NewEmployee.Position" class="text-danger"></span>
+                <span asp-validation-for="NewEmployee.Position" class="text-danger small"></span>
             </div>
-            @if (TempData["Error"] != null)
-            {
-                <div class="alert alert-danger">
-                    @TempData["Error"]
-                </div>
-            }
             <div class="d-flex gap-2 mt-4">
-                <button type="button" class="btn btn-outline-secondary w-100" onclick="closeAddModal()">Cancel</button>
-                <button type="submit" class="btn btn-modern w-100 text-white">Save Agent</button>
+                <button type="button" class="btn-modal-cancel" onclick="closeAddModal()">Cancel</button>
+                <button type="submit" class="btn-modal-save">Save Agent</button>
             </div>
         </form>
     </div>
 </div>
 
-<div id="editEmployeeModal" class="modal">
-    <div class="modal-content">
-        <h3 class="fw-bold mb-3">Edit Agent Details</h3>
+
+<div id="editEmployeeModal" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Edit Agent Details</h3>
         <form asp-action="EditEmployee" method="post">
             @Html.AntiForgeryToken()
             <input type="hidden" id="editId" name="Id" />
             <div class="mb-3">
-                <label class="small fw-bold text-uppercase text-muted">Full Name</label>
+                <label class="form-label">Full Name</label>
                 <input type="text" id="editFullName" name="FullName" class="form-control" required />
             </div>
             <div class="mb-3">
-                <label class="small fw-bold text-uppercase text-muted">Email</label>
+                <label class="form-label">Email</label>
                 <input type="email" id="editEmail" name="Email" class="form-control" required />
             </div>
             <div class="mb-3">
-                <label class="form-label fw-bold">Position</label>
+                <label class="form-label">Position</label>
                 <select id="editPosition" name="Position" class="form-select">
                     <option value="">-- Select Position --</option>
                     @foreach (var pos in Workcraft.Helpers.PositionHelper.Positions)
@@ -169,16 +217,9 @@
                     }
                 </select>
             </div>
-            <div class="mb-3">
-                <label class="small fw-bold text-uppercase text-muted">Current Status</label>
-                <select id="editStatus" name="Status" class="form-select">
-                    <option value="Available">Available</option>
-                    <option value="Busy">Busy</option>
-                </select>
-            </div>
             <div class="d-flex gap-2 mt-4">
-                <button type="button" class="btn btn-light w-100" onclick="closeEditModal()">Cancel</button>
-                <button type="submit" class="btn btn-modern w-100 text-white">Update Info</button>
+                <button type="button" class="btn-modal-cancel" onclick="closeEditModal()">Cancel</button>
+                <button type="submit" class="btn-modal-save">Update Info</button>
             </div>
         </form>
     </div>

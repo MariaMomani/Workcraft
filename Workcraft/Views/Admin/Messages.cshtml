@@ -3,35 +3,93 @@
     Layout = "_AdminLayout";
 }
 
-@* <div class="admin-container">
-    @Html.Partial("_AdminSidebar")
+<div class="messages-page">
 
-    <div class="admin-content"> *@
-        <h2 class="fw-bold mb-4">Contact Messages</h2>
+    <div class="messages-page-header">
+        <h1><i class="fa-regular fa-envelope me-2" style="color:#2563eb"></i>Contact Messages</h1>
+        <p>Messages sent from the contact form on your website.</p>
+    </div>
 
-        <div class="table-card">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Message</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
 
-                <tbody>
-                    @foreach (var msg in Model)
-                    {
-                        <tr>
-                            <td>@msg.Name</td>
-                            <td>@msg.Email</td>
-                            <td class="message-cell">@msg.Message</td>
-                            <td>@msg.SentAt.ToString("MMM dd")</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+    <div class="msg-controls">
+        <h2>All Messages</h2>
+        <div class="msg-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="msgSearch" placeholder="Search by name or email..." oninput="filterMessages()" />
         </div>
-@*     </div>
-</div> *@
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="msg-empty">
+            <i class="fa-regular fa-envelope-open"></i>
+            <p>No messages yet.</p>
+        </div>
+    }
+    else
+    {
+        <div class="msg-grid" id="msgGrid">
+            @{
+                string[] avColors = { "av-blue", "av-green", "av-yellow", "av-purple", "av-pink", "av-orange", "av-teal", "av-red" };
+                int ci = 0;
+            }
+            @foreach (var msg in Model.OrderByDescending(m => m.SentAt))
+            {
+                var av = avColors[ci++ % avColors.Length];
+                var initial = string.IsNullOrWhiteSpace(msg.Name) ? "?" : msg.Name.Trim()[0].ToString().ToUpper();
+                var dateStr = msg.SentAt.Date == DateTime.Today
+                ? "Today " + msg.SentAt.ToString("hh:mm tt")
+                : msg.SentAt.ToString("MMM dd, yyyy");
+
+                <div class="msg-card" data-search="@msg.Name.ToLower() @msg.Email.ToLower()">
+                    <div class="msg-card-top">
+                        <div class="msg-avatar @av">@initial</div>
+                        <div>
+                            <p class="msg-sender-name">@msg.Name</p>
+                            <p class="msg-sender-email">@msg.Email</p>
+                        </div>
+                        <span class="msg-date-badge">
+                            <i class="fa-regular fa-clock me-1"></i>@dateStr
+                        </span>
+                    </div>
+
+                    <hr class="msg-divider" />
+
+                    <p class="msg-body">@msg.Message</p>
+
+                    <div class="msg-card-footer">
+                        <a class="msg-reply-btn" href="mailto:@msg.Email?subject=Re: Your message&body=Hi @msg.Name,">
+                            <i class="fa-solid fa-reply"></i> Reply
+                        </a>
+                        <button class="msg-copy-btn" title="Copy email" onclick="copyEmail('@msg.Email', this)">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function filterMessages() {
+            const q = document.getElementById('msgSearch').value.toLowerCase().trim();
+            document.querySelectorAll('.msg-card').forEach(card => {
+                card.classList.toggle('msg-hidden', !card.dataset.search.includes(q));
+            });
+        }
+
+        function copyEmail(email, btn) {
+            navigator.clipboard.writeText(email).then(() => {
+                const icon = btn.querySelector('i');
+                icon.className = 'fa-solid fa-check';
+                btn.style.color = '#16a34a';
+                setTimeout(() => {
+                    icon.className = 'fa-regular fa-copy';
+                    btn.style.color = '';
+                }, 1500);
+            });
+        }
+    </script>
+}

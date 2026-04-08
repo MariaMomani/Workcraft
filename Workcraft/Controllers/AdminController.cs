@@ -90,21 +90,11 @@ namespace Workcraft.Controllers
                 Employees = usersInRole.ToList(),
                 NewEmployee = new AddEmployeeViewModel(),
                 TotalEmployees = usersInRole.Count,
-                ActiveEmployees = usersInRole.Count(u => u.IsActive),
+                ActiveEmployees = usersInRole.Count(u => u.Status != "Busy" && u.Status != "Offline" && u.Status != "Break"),
                 BusyEmployees = usersInRole.Count(u => u.Status == "Busy")
             };
 
             return View(model);
-        }
-
-        public async Task<IActionResult> EmployeeDetails(string id)
-        {
-            var user = await _userManager.FindByIdAsync(id);
-
-            if (user == null)
-                return NotFound();
-
-            return View(user);
         }
 
         [HttpPost]
