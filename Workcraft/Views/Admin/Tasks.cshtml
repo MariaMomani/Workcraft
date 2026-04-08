@@ -3,76 +3,268 @@
     Layout = "_AdminLayout";
 }
 
-<h2>Create New Task</h2>
-<div asp-validation-summary="All" class="text-danger mb-3"></div>
-<form asp-action="CreateTask" asp-controller="Admin" method="post">
-    @Html.AntiForgeryToken()
+<link rel="stylesheet" href="~/css/tasks.css" />
 
-        <label>Title</label>
-        <input asp-for="Title" class="form-control" />
-        <span asp-validation-for="Title" class="text-danger"></span>
+<div class="tasks-page">
 
-        <label>Description</label>
-        <textarea asp-for="Description" class="form-control"></textarea>
-        <span asp-validation-for="Description" class="text-danger"></span>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>Task Management</h1>
+        <p>Assign and track tasks across your team</p>
+    </div>
 
-        <label>Due Date</label>
-        <input asp-for="DueDate" type="date" class="form-control" />
-        <span asp-validation-for="DueDate" class="text-danger"></span>
+    <!-- Create Task Form -->
+    <div class="form-card">
+        <h2>
+            <span class="icon-badge"><i class="fa-solid fa-plus"></i></span>
+            Create New Task
+        </h2>
 
-        <label>Assign To</label>
-        <select asp-for="AssignedToId"
-                asp-items="Model.Employees"
-                class="form-control">
-            <option value="">-- Select Employee --</option>
-        </select>
-        <span asp-validation-for="AssignedToId" class="text-danger"></span>
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-    <br />
-    <button type="submit" class="btn btn-primary">
-        Create Task
-    </button>
-</form>
+        <form asp-action="CreateTask" asp-controller="Admin" method="post">
+            @Html.AntiForgeryToken()
+            <div class="form-grid">
 
-<br />
+                <div class="form-group full-width">
+                    <label>Task Title</label>
+                    <input asp-for="Title" placeholder="e.g. Fix login bug" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
 
-<h2>Tasks Management</h2>
+                <div class="form-group full-width">
+                    <label>Description</label>
+                    <textarea asp-for="Description" placeholder="Describe what needs to be done..."></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Title</th>
-            <th>Employee</th>
-            <th>Status</th>
-            <th>Due Date</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var task in Model.Tasks)
-        {
-            <tr>
-                <td>@task.Title</td>
-                <td>@task.AssignedTo?.FullName</td>
-                <td>
-                    @if (task.Status == Workcraft.Models.Enums.WorkTaskStatus.Pending)
+                <div class="form-group">
+                    <label>Due Date</label>
+                    <input asp-for="DueDate" type="date" />
+                </div>
+
+                <div class="form-group">
+                    <label>Position</label>
+                    <select id="positionSelect">
+                        <option value="">-- Select Position --</option>
+                        @foreach (var pos in Workcraft.Helpers.PositionHelper.Positions)
+                        {
+                            <option value="@pos">@pos</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group full-width">
+                    <label>Assign To</label>
+                    <select id="employeeSelect" name="AssignedToId">
+                        <option value="">-- Select Employee --</option>
+                    </select>
+                    <span asp-validation-for="AssignedToId" class="text-danger"></span>
+                </div>
+
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-create">
+                    <i class="fa-solid fa-paper-plane"></i> Create Task
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tasks Section Header -->
+    <div class="tasks-section-header">
+        <h2>All Tasks</h2>
+        <span class="tasks-count">@Model.Tasks.Count tasks</span>
+    </div>
+
+    <!-- Tasks Grid -->
+    @if (!Model.Tasks.Any())
+    {
+        <div class="empty-state">
+            <i class="fa-regular fa-clipboard"></i>
+            <p style="font-weight:600; color:#64748b;">No tasks yet</p>
+            <p style="font-size:0.85rem;">Create your first task above to get started.</p>
+        </div>
+    }
+    else
+    {
+        <div class="tasks-grid">
+            @foreach (var task in Model.Tasks)
+            {
+                var statusClass = task.Status switch
+                {
+                    Workcraft.Models.Enums.WorkTaskStatus.Pending => "status-pending",
+                    Workcraft.Models.Enums.WorkTaskStatus.InProgress => "status-inprogress",
+                    Workcraft.Models.Enums.WorkTaskStatus.Completed => "status-completed",
+                    Workcraft.Models.Enums.WorkTaskStatus.Rejected => "status-rejected",
+                    _ => ""
+                };
+
+                var badgeClass = task.Status switch
+                {
+                    Workcraft.Models.Enums.WorkTaskStatus.Pending => "badge-pending",
+                    Workcraft.Models.Enums.WorkTaskStatus.InProgress => "badge-inprogress",
+                    Workcraft.Models.Enums.WorkTaskStatus.Completed => "badge-completed",
+                    Workcraft.Models.Enums.WorkTaskStatus.Rejected => "badge-rejected",
+                    _ => ""
+                };
+
+                var badgeLabel = task.Status switch
+                {
+                    Workcraft.Models.Enums.WorkTaskStatus.Pending => "PENDING",
+                    Workcraft.Models.Enums.WorkTaskStatus.InProgress => "IN PROGRESS",
+                    Workcraft.Models.Enums.WorkTaskStatus.Completed => "COMPLETED",
+                    Workcraft.Models.Enums.WorkTaskStatus.Rejected => "REJECTED",
+                    _ => ""
+                };
+
+                string timeLeftLabel = "";
+                string timeLeftClass = "time-ok";
+
+                if (task.Status == Workcraft.Models.Enums.WorkTaskStatus.Completed)
+                {
+                    timeLeftLabel = "Completed";
+                    timeLeftClass = "time-done";
+                }
+                else if (task.DueDate.HasValue)
+                {
+                    var diff = task.DueDate.Value.Date - DateTime.Today;
+                    if (diff.TotalDays < 0)
                     {
-                        <span class="badge bg-warning text-dark">Pending</span>
+                        timeLeftLabel = "Late for submit";
+                        timeLeftClass = "time-late";
                     }
-                    else if (task.Status == Workcraft.Models.Enums.WorkTaskStatus.InProgress)
+                    else if (diff.TotalDays == 0)
                     {
-                        <span class="badge bg-primary">Accepted</span>
+                        timeLeftLabel = "Due today";
+                        timeLeftClass = "time-warning";
                     }
-                    else if (task.Status == Workcraft.Models.Enums.WorkTaskStatus.Completed)
+                    else if (diff.TotalDays <= 3)
                     {
-                        <span class="badge bg-success">Completed</span>
+                        timeLeftLabel = $"{(int)diff.TotalDays} days left";
+                        timeLeftClass = "time-warning";
                     }
-                    else if (task.Status == Workcraft.Models.Enums.WorkTaskStatus.Rejected)
+                    else if (diff.TotalDays < 7)
                     {
-                        <span class="badge bg-danger">Rejected</span>
+                        timeLeftLabel = $"{(int)diff.TotalDays} days left";
+                        timeLeftClass = "time-ok";
                     }
-                </td>
-                <td>@task.DueDate?.ToShortDateString()</td>
-            </tr>
+                    else
+                    {
+                        int weeks = (int)(diff.TotalDays / 7);
+                        timeLeftLabel = $"{weeks} week{(weeks > 1 ? "s" : "")} left";
+                        timeLeftClass = "time-ok";
+                    }
+                }
+                else
+                {
+                    timeLeftLabel = "No due date";
+                    timeLeftClass = "time-ok";
+                }
+
+                <div class="task-card @statusClass">
+                    <div class="task-card-top">
+                        <div class="task-title">@task.Title</div>
+                        <span class="status-badge @badgeClass">@badgeLabel</span>
+                    </div>
+
+                    <div class="task-meta">
+                        <div class="task-meta-item">
+                            <i class="fa-regular fa-user"></i>
+                            @(task.AssignedTo?.FullName ?? "Unassigned")
+                        </div>
+                        <div class="task-meta-item">
+                            <i class="fa-regular fa-calendar"></i>
+                            @(task.DueDate.HasValue? task.DueDate.Value.ToString("MMM dd, yyyy") : "No due date")
+                        </div>
+                    </div>
+
+                    <div class="time-left">
+                        <span class="time-left-label">
+                            <i class="fa-regular fa-clock"></i> Time Left
+                        </span>
+                        <span class="time-left-value @timeLeftClass">@timeLeftLabel</span>
+                    </div>
+
+                    <button class="btn-view"
+                            onclick="showDetail('@Html.Raw(task.Title.Replace("'", "\\'"))', '@(task.AssignedTo?.FullName ?? "Unassigned")', '@(task.DueDate.HasValue? task.DueDate.Value.ToString("MMM dd, yyyy") : "No due date")', '@badgeLabel', '@badgeClass', '@Html.Raw((task.Description ?? "No description provided.").Replace("'", "\\'").Replace("\n", "\\n"))')">
+                        <i class="fa-regular fa-eye"></i> View Details
+                    </button>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Detail Modal -->
+<div class="modal fade" id="taskDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTaskTitle">Task Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-detail-row">
+                    <i class="fa-regular fa-user"></i>
+                    <span id="modalAssignee"></span>
+                </div>
+                <div class="modal-detail-row">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span id="modalDueDate"></span>
+                </div>
+                <div class="modal-detail-row">
+                    <i class="fa-solid fa-circle-half-stroke"></i>
+                    <span id="modalStatus"></span>
+                </div>
+                <div class="modal-description">
+                    <div class="modal-description-label">Description</div>
+                    <div id="modalDescription"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Position → Employee cascade
+        document.getElementById("positionSelect").addEventListener("change", function () {
+            const position = this.value;
+            const employeeDropdown = document.getElementById("employeeSelect");
+            employeeDropdown.innerHTML = '<option value="">-- Select Employee --</option>';
+            if (!position) return;
+
+            fetch('/Admin/GetEmployeesByPosition?position=' + encodeURIComponent(position))
+                .then(r => r.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        employeeDropdown.innerHTML += '<option disabled>No available employees</option>';
+                        return;
+                    }
+                    data.forEach(emp => {
+                        const opt = document.createElement("option");
+                        opt.value = emp.id;
+                        opt.text = emp.name;
+                        employeeDropdown.appendChild(opt);
+                    });
+                })
+                .catch(err => console.error("Error:", err));
+        });
+
+        // Show task detail modal
+        function showDetail(title, assignee, dueDate, statusLabel, badgeClass, description) {
+            document.getElementById("modalTaskTitle").textContent = title;
+            document.getElementById("modalAssignee").textContent = assignee;
+            document.getElementById("modalDueDate").textContent = dueDate;
+
+            const statusEl = document.getElementById("modalStatus");
+            statusEl.innerHTML = `<span class="status-badge ${badgeClass}">${statusLabel}</span>`;
+
+            document.getElementById("modalDescription").textContent = description;
+
+            new bootstrap.Modal(document.getElementById("taskDetailModal")).show();
         }
-    </tbody>
-</table>
+    </script>
+}

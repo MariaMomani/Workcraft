@@ -9,6 +9,7 @@ using Workcraft.Models.Enums;
 using Workcraft.Models.ViewModels;
 using Workcraft.Services;
 using Workcraft.ViewModels;
+using Workcraft.Helpers;
 
 namespace Workcraft.Controllers
 {
@@ -33,23 +34,48 @@ namespace Workcraft.Controllers
 
         public async Task<IActionResult> Dashboard()
         {
-            var usersInRole = await _userManager.GetUsersInRoleAsync("User");
+            var users = await _userManager.GetUsersInRoleAsync("User");
 
-            var totalEmployees = usersInRole.Count;
+            var totalEmployees = users.Count;
+            var availableEmployees = users.Count(u => u.Status == "Available");
+            var busyEmployees = users.Count(u => u.Status == "Busy");
 
-            var availableEmployees = usersInRole.Count(u => u.Status == "Available");
+            var tasks = _context.TaskItems.ToList();
 
-            var busyEmployees = usersInRole.Count(u => u.Status == "Busy");
+            var completedTasks = tasks.Count(t => t.Status == WorkTaskStatus.Completed);
+            var totalTasks = tasks.Count;
 
-            var tasksInProgress = _context.TaskItems
-                .Count(t => t.Status == WorkTaskStatus.InProgress);
+            int completionRate = totalTasks > 0
+                ? (int)((double)completedTasks / totalTasks * 100)
+                : 0;
+
+            var today = DateTime.Today;
+
+            var weeklyCompleted = new List<int>();
+            var weeklyInProgress = new List<int>();
+
+            for (int i = 6; i >= 0; i--)
+            {
+                var day = today.AddDays(-i);
+
+                weeklyCompleted.Add(tasks.Count(t =>
+                    t.Status == WorkTaskStatus.Completed &&
+                    t.CreatedAt.Date == day));
+
+                weeklyInProgress.Add(tasks.Count(t =>
+                    t.Status == WorkTaskStatus.InProgress &&
+                    t.CreatedAt.Date == day));
+            }
 
             var model = new DashboardViewModel
             {
                 TotalEmployees = totalEmployees,
                 AvailableEmployees = availableEmployees,
                 BusyEmployees = busyEmployees,
-                TasksInProgress = tasksInProgress
+                TasksInProgress = tasks.Count(t => t.Status == WorkTaskStatus.InProgress),
+                CompletionRate = completionRate,
+                WeeklyCompleted = weeklyCompleted,
+                WeeklyInProgress = weeklyInProgress
             };
 
             return View(model);
@@ -96,9 +122,10 @@ namespace Workcraft.Controllers
                 UserName = model.NewEmployee.Email,
                 Email = model.NewEmployee.Email,
                 FullName = model.NewEmployee.FullName,
-                Status = "Available",
+                Status = "Available",                
+                Position = model.NewEmployee.Position,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
             };
 
             var result = await _userManager.CreateAsync(user, model.NewEmployee.Password);
@@ -129,6 +156,12 @@ namespace Workcraft.Controllers
 
             if (user != null)
             {
+                var tasks = _context.TaskItems
+                    .Where(t => t.AssignedToId == id);
+
+                _context.TaskItems.RemoveRange(tasks);
+                await _context.SaveChangesAsync();
+
                 await _userManager.DeleteAsync(user);
             }
 
@@ -139,6 +172,12 @@ namespace Workcraft.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditEmployee(Users model)
         {
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Invalid data submitted.";
+                return RedirectToAction("Employees");
+            }
+
             var user = await _userManager.FindByIdAsync(model.Id);
             if (user == null)
                 return NotFound();
@@ -146,41 +185,32 @@ namespace Workcraft.Controllers
             user.FullName = model.FullName;
             user.Status = model.Status;
 
+            user.Position = string.IsNullOrWhiteSpace(model.Position)
+                ? "Not Assigned"
+                : model.Position;
+
             if (user.Email != model.Email)
             {
-                var setEmailResult = await _userManager.SetEmailAsync(user, model.Email);
-                if (!setEmailResult.Succeeded)
+                var emailResult = await _userManager.SetEmailAsync(user, model.Email);
+                if (!emailResult.Succeeded)
                 {
-                    ModelState.AddModelError("", "Failed to update email.");
+                    TempData["Error"] = string.Join(", ", emailResult.Errors.Select(e => e.Description));
                     return RedirectToAction("Employees");
                 }
 
-                var setUserNameResult = await _userManager.SetUserNameAsync(user, model.Email);
-                if (!setUserNameResult.Succeeded)
-                {
-                    ModelState.AddModelError("", "Failed to update username.");
-                    return RedirectToAction("Employees");
-                }
+                await _userManager.SetUserNameAsync(user, model.Email);
             }
 
-            await _userManager.UpdateAsync(user);
+            var result = await _userManager.UpdateAsync(user);
 
-            return RedirectToAction("Employees");
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ToggleActive(string id)
-        {
-            var user = await _userManager.FindByIdAsync(id);
-
-            if (user != null)
+            if (!result.Succeeded)
             {
-                user.IsActive = !user.IsActive;
-                await _userManager.UpdateAsync(user);
+                TempData["Error"] = string.Join(", ", result.Errors.Select(e => e.Description));
+                return RedirectToAction("Employees");
             }
 
-            return RedirectToAction(nameof(Employees));
+            TempData["Success"] = "Employee updated successfully.";
+            return RedirectToAction("Employees");
         }
 
         public async Task<IActionResult> Tasks()
@@ -190,7 +220,6 @@ namespace Workcraft.Controllers
             var model = new TaskManagementViewModel
             {
                 Employees = usersInRole
-                    .Where(u => u.IsActive)
                     .Select(u => new SelectListItem
                     {
                         Value = u.Id,
@@ -202,9 +231,40 @@ namespace Workcraft.Controllers
                     .OrderByDescending(t => t.CreatedAt)
                     .ToList()
             };
+            model.Positions = PositionHelper.Positions
+                .Select(p => new SelectListItem
+                {
+                    Value = p,
+                    Text = p
+                }).ToList();
 
             return View(model);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetEmployeesByPosition(string position)
+        {
+            if (string.IsNullOrEmpty(position))
+                return Json(new List<object>());
+
+            var users = await _userManager.GetUsersInRoleAsync("User");
+
+            var filtered = users
+                .Where(u =>
+                    !string.IsNullOrEmpty(u.Position) &&
+                    u.Position == position &&
+                    u.Status == "Available" &&
+                    u.IsActive)
+                .Select(u => new
+                {
+                    id = u.Id,
+                    name = u.FullName
+                })
+                .ToList();
+
+            return Json(filtered);
+        }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]

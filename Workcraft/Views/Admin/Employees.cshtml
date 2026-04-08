@@ -3,6 +3,20 @@
     Layout = "_AdminLayout";
 }
 
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -36,9 +50,9 @@
             <thead>
                 <tr>
                     <th>Agent Name</th>
+                    <th>Position</th>
                     <th>Communication</th>
                     <th>Status</th>
-                    <th>Operations</th>
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
@@ -47,6 +61,7 @@
                 {
                     <tr>
                         <td class="fw-bold">@employee.FullName</td>
+                        <td class="text-secondary">@employee.Position</td>
                         <td class="text-secondary">@employee.Email</td>
                         <td>
                             @{
@@ -63,32 +78,13 @@
                                 @(employee.Status ?? "Available")
                             </span>
                         </td>
-                        <td>
-                            @if (employee.Status == "Offline")
-                            {
-                                <span class="text-muted small">Offline</span>
-                            }
-                            else
-                            {
-                                <span class="text-success small">
-                                    <i class="fa-solid fa-circle me-1" style="font-size: 8px;"></i> Online
-                                </span>
-                            }
-                        </td>
                         <td class="text-end">
-                            <form asp-action="ToggleActive" method="post" style="display:inline;">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@employee.Id" />
-                                <button type="submit" class="btn btn-sm btn-outline-secondary border-0">
-                                    <i class="fa-solid fa-power-off"></i>
-                                </button>
-                            </form>
-
                             <button type="button" class="btn btn-sm btn-outline-primary border-0 edit-btn"
                                     data-id="@employee.Id"
                                     data-name="@employee.FullName"
                                     data-email="@employee.Email"
-                                    data-status="@(employee.Status ?? "Available")">
+                                    data-status="@(employee.Status ?? "Available")"
+                                    data-position="@employee.Position">
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </button>
 
@@ -124,6 +120,17 @@
                 <label class="form-label fw-bold">Temp Password</label>
                 <input asp-for="NewEmployee.Password" type="password" class="form-control" placeholder="Enter a temporary password" required />
             </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Position</label>
+                <select asp-for="NewEmployee.Position" class="form-select">
+                    <option value="">-- Select Position --</option>
+                    @foreach (var pos in Workcraft.Helpers.PositionHelper.Positions)
+                    {
+                        <option value="@pos">@pos</option>
+                    }
+                </select>
+                <span asp-validation-for="NewEmployee.Position" class="text-danger"></span>
+            </div>
             @if (TempData["Error"] != null)
             {
                 <div class="alert alert-danger">
@@ -151,6 +158,16 @@
             <div class="mb-3">
                 <label class="small fw-bold text-uppercase text-muted">Email</label>
                 <input type="email" id="editEmail" name="Email" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Position</label>
+                <select id="editPosition" name="Position" class="form-select">
+                    <option value="">-- Select Position --</option>
+                    @foreach (var pos in Workcraft.Helpers.PositionHelper.Positions)
+                    {
+                        <option value="@pos">@pos</option>
+                    }
+                </select>
             </div>
             <div class="mb-3">
                 <label class="small fw-bold text-uppercase text-muted">Current Status</label>

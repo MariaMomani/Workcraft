@@ -344,3 +344,43 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+.dashboard-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-radius: 16px;
+    border: none;
+    transition: 0.3s;
+    background: #ffffff;
+}
+
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    }
+
+    .dashboard-card p {
+        margin: 0;
+        color: #777;
+        font-size: 14px;
+    }
+
+    .dashboard-card h3 {
+        margin: 5px 0;
+        font-weight: bold;
+    }
+
+    .dashboard-card .icon {
+        font-size: 28px;
+        color: #4e73df;
+        background: #eef2ff;
+        padding: 12px;
+        border-radius: 12px;
+    }
+
+.chart-card {
+    border-radius: 16px;
+    border: none;
+}

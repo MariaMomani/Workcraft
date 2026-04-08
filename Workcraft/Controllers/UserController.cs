@@ -71,32 +71,6 @@ namespace Workcraft.Controllers
             return View(tasks);
         }
 
-        //public async Task<IActionResult> MyTasks()
-        //{
-        //    var userId = _userManager.GetUserId(User);
-        //    var tasks = await _context.TaskItems
-        //        .Where(t => t.AssignedToId == userId)
-        //        .OrderByDescending(t => t.CreatedAt)
-        //        .ToListAsync();
-
-        //    return View(tasks);
-        //}
-
-        //[HttpPost]
-        //public async Task<IActionResult> StartTask(int taskId)
-        //{
-        //    var task = await _context.TaskItems.FindAsync(taskId);
-        //    if (task != null && task.AssignedToId == _userManager.GetUserId(User))
-        //    {
-        //        task.Status = Models.Enums.WorkTaskStatus.InProgress;
-        //        await _context.SaveChangesAsync();
-
-        //        await _statusService.UpdateEmployeeStatusAsync(task.AssignedToId);
-        //    }
-
-        //    return RedirectToAction(nameof(MyTasks));
-        //}
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AcceptTask(int taskId)
@@ -149,7 +123,7 @@ namespace Workcraft.Controllers
                 FullName = user.UserName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
-                //Position = user.Position
+                Position = user.Position
             };
 
             return View(model);

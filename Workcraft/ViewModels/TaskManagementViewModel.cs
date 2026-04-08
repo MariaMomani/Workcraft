@@ -20,5 +20,9 @@ namespace Workcraft.ViewModels
         public List<SelectListItem>? Employees { get; set; }
         [ValidateNever]
         public List<TaskItem>? Tasks { get; set; }
+        [ValidateNever]
+        public string SelectedPosition { get; set; }
+        [ValidateNever]
+        public List<SelectListItem> Positions { get; set; }
     }
 }

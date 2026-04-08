@@ -14,5 +14,7 @@ namespace Workcraft.ViewModels
         [Required]
         [DataType(DataType.Password)]
         public string Password { get; set; }
+        [Required]
+        public string Position { get; set; }
     }
 }

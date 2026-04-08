@@ -8,17 +8,22 @@ function closeAddModal() {
 
 document.querySelectorAll('.edit-btn').forEach(button => {
     button.addEventListener('click', function () {
+
         const id = this.getAttribute('data-id');
         const name = this.getAttribute('data-name');
         const email = this.getAttribute('data-email');
+        const position = this.getAttribute('data-position');
         const status = this.getAttribute('data-status');
 
         document.getElementById('editId').value = id;
         document.getElementById('editFullName').value = name;
         document.getElementById('editEmail').value = email;
+
+        document.getElementById('editPosition').value = position || "";
+
         document.getElementById('editStatus').value = status;
 
-        document.getElementById('editEmployeeModal').style.display = 'flex';
+        document.getElementById('editEmployeeModal').style.display = 'block';
     });
 });
 

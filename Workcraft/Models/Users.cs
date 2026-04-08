@@ -17,5 +17,6 @@ namespace Workcraft.Models
         public DateTime? UpdatedAt { get; set; }
         public DateTime? LastLoginAt { get; set; }
         public ICollection<TaskItem> Tasks { get; set; }
+        public string? Position { get; set; } = "Not Assigned";
     }
 }
