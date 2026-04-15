@@ -34,6 +34,7 @@ namespace Workcraft.Controllers
         public async Task<IActionResult> Dashboard()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _userManager.FindByIdAsync(userId);
 
             var userTasks = await _context.TaskItems
             .Where(t => t.AssignedToId == userId)
@@ -49,6 +50,7 @@ namespace Workcraft.Controllers
             ViewBag.CompletedTasks = completed;
             ViewBag.InProgressTasks = inProgress;
             ViewBag.CompletionRate = Math.Round(rate);
+            ViewBag.CurrentStatus = user?.Status ?? "Available";
 
             var notifications = await _context.Notifications
                 .Where(n => n.UserId == userId && !n.IsRead)
@@ -57,6 +59,23 @@ namespace Workcraft.Controllers
 
             ViewBag.Notifications = notifications;
             return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DismissNotification(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var notification = await _context.Notifications
+                .FirstOrDefaultAsync(n => n.Id == id && n.UserId == userId);
+
+            if (notification != null)
+            {
+                notification.IsRead = true;
+                await _context.SaveChangesAsync();
+            }
+
+            return Json(new { success = true });
         }
 
         public async Task<IActionResult> TaskDetails()
@@ -106,6 +125,23 @@ namespace Workcraft.Controllers
 
             await _context.SaveChangesAsync();
 
+            await _statusService.UpdateEmployeeStatusAsync(userId);
+
+            return RedirectToAction(nameof(TaskDetails));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeTaskStatus(int taskId, WorkTaskStatus status)
+        {
+            var userId = _userManager.GetUserId(User);
+            var task = await _context.TaskItems.FindAsync(taskId);
+
+            if (task == null || task.AssignedToId != userId)
+                return NotFound();
+
+            task.Status = status;
+            await _context.SaveChangesAsync();
             await _statusService.UpdateEmployeeStatusAsync(userId);
 
             return RedirectToAction(nameof(TaskDetails));

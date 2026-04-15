@@ -4,98 +4,110 @@
 }
 
 <header class="user-header">
-    <h1>Welcome back, @User.Identity.Name! 👋</h1>
-    <p>You have 0 tasks to focus on today. | @DateTime.Now.ToString("MMMM dd, yyyy")</p>
+    <div>
+        <h1>Welcome back, @User.Identity.Name! 👋</h1>
+        <p>
+            You have <strong>@ViewBag.TotalTasks</strong> task(s) to focus on today. |
+            @DateTime.Now.ToString("MMMM dd, yyyy")
+        </p>
+    </div>
     <div class="user-status-display">
-        <span id="currentStatus" class="status-badge">Available</span>
+        <span id="currentStatus" class="status-badge">@ViewBag.CurrentStatus</span>
     </div>
 </header>
 
-@if (ViewBag.Notifications != null)
+@if (ViewBag.Notifications != null && ((IEnumerable<dynamic>)ViewBag.Notifications).Any())
 {
-    <div class="mb-3">
-        <h5>Notifications 🔔</h5>
-
-        @foreach (var n in ViewBag.Notifications)
-        {
-            <div class="alert alert-info p-2 mb-2">
-                @n.Message
-            </div>
-        }
-    </div>
+    <section class="notif-section">
+        <h5 class="notif-title"><i class="fa-solid fa-bell"></i> Notifications</h5>
+        <div id="notif-list">
+            @foreach (var n in ViewBag.Notifications)
+            {
+                <div class="notif-item" id="notif-@n.Id">
+                    <i class="fa-solid fa-circle-info notif-icon"></i>
+                    <span class="notif-msg">@n.Message</span>
+                    <button class="notif-dismiss"
+                            onclick="dismissNotification(@n.Id)"
+                            title="Dismiss">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            }
+        </div>
+    </section>
 }
 
 <div class="user-stats-grid">
     <div class="stat-card">
-        <div>
+        <div class="stat-top">
             <i class="fa-solid fa-layer-group"></i>
             <div class="stat-label">Total Tasks</div>
         </div>
-        <h2 class="stat-value">0</h2>
+        <h2 class="stat-value">@ViewBag.TotalTasks</h2>
     </div>
-
     <div class="stat-card">
-        <div>
-            <i class="fa-solid fa-circle-check"></i>
+        <div class="stat-top">
+            <i class="fa-solid fa-circle-check" style="color:#22c55e"></i>
             <div class="stat-label">Completed</div>
         </div>
-        <h2 class="stat-value">0</h2>
+        <h2 class="stat-value">@ViewBag.CompletedTasks</h2>
     </div>
-
     <div class="stat-card">
-        <div>
-            <i class="fa-solid fa-spinner"></i>
+        <div class="stat-top">
+            <i class="fa-solid fa-spinner" style="color:#f59e0b"></i>
             <div class="stat-label">In Progress</div>
         </div>
-        <h2 class="stat-value">0</h2>
+        <h2 class="stat-value">@ViewBag.InProgressTasks</h2>
     </div>
-
     <div class="stat-card">
-        <div>
-            <i class="fa-solid fa-chart-pie"></i>
+        <div class="stat-top">
+            <i class="fa-solid fa-chart-pie" style="color:#8b5cf6"></i>
             <div class="stat-label">Success Rate</div>
         </div>
-        <h2 class="stat-value">0%</h2>
+        <h2 class="stat-value">@ViewBag.CompletionRate%</h2>
     </div>
 </div>
-<br />
-<br />
+
 <div class="status-card">
-
     <h5 class="fw-bold mb-3">Your Status</h5>
-
     <div class="status-grid">
-
         <button class="status-btn" onclick="changeStatus('Available')">
-            <i class="fa-solid fa-circle-check"></i>
-            Available
+            <i class="fa-solid fa-circle-check"></i> Available
         </button>
-
         <button class="status-btn" onclick="changeStatus('Busy')">
-            <i class="fa-solid fa-briefcase"></i>
-            Busy
+            <i class="fa-solid fa-briefcase"></i> Busy
         </button>
-
         <button class="status-btn" onclick="changeStatus('Break')">
-            <i class="fa-solid fa-mug-hot"></i>
-            On Break
+            <i class="fa-solid fa-mug-hot"></i> On Break
         </button>
-
         <button class="status-btn" onclick="changeStatus('Offline')">
-            <i class="fa-solid fa-moon"></i>
-            Offline
+            <i class="fa-solid fa-moon"></i> Offline
         </button>
-
     </div>
-
 </div>
 
-<div style="margin-top: 30px;">
-    <a href="#" class="btn-modern" style="padding: 10px 20px; text-decoration: none; color: white; display: inline-block;">
+<div class="view-tasks-row">
+    <a asp-controller="User" asp-action="TaskDetails" class="btn-modern">
         View My Tasks <i class="fa-solid fa-arrow-right"></i>
     </a>
 </div>
 
-@section Scripts{
+@section Scripts {
     <script src="~/js/status.js"></script>
+    <script src="~/js/userDashboard.js"></script>
+
+    <input type="hidden" id="savedStatus" value="@ViewBag.CurrentStatus" />
+    <form id="af-form" style="display:none">
+        @Html.AntiForgeryToken()
+        <input type="hidden" id="af-token"
+               value="" />
+    </form>
+
+    <script>
+        document.getElementById("af-token").value =
+            document.querySelector("#af-form [name=__RequestVerificationToken]").value;
+    </script>
 }
+    <form id="af-form" style="display:none">
+        @Html.AntiForgeryToken()
+    </form>
