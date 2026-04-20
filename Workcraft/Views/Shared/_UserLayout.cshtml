@@ -30,6 +30,10 @@
                    class="menu-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Profile" ? "active" : "")">
                     <i class="fa-solid fa-user"></i> My Profile
                 </a>
+                <a asp-controller="User" asp-action="Notifications"
+                   class="menu-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Notifications" ? "active" : "")">
+                    <i class="fa-solid fa-bell"></i> Notifications
+                </a>
             </nav>
 
             <div class="logout-section">

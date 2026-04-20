@@ -1,0 +1,143 @@
+﻿@model List<Workcraft.Models.Notification>
+@{
+    Layout = "_UserLayout";
+    ViewData["Title"] = "Notifications";
+    var unread = Model.Where(n => !n.IsRead).ToList();
+    var read = Model.Where(n => n.IsRead).ToList();
+}
+
+<div class="container mt-4" style="max-width: 780px;">
+
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
+        <div>
+            <h2 style="font-size:26px;font-weight:600;color:#111827;margin:0 0 4px;">
+                Notifications
+            </h2>
+            <p style="font-size:13px;color:#6b7280;margin:0;">
+                You have <strong>@unread.Count</strong> unread notification(s)
+            </p>
+        </div>
+        @if (unread.Any())
+        {
+            <button class="btn-mark-all" id="markAllBtn">
+                <i class="fa-solid fa-check-double"></i> Mark all as read
+            </button>
+        }
+    </div>
+
+    <div class="tab-bar">
+        <button class="tab-btn active" data-tab="all">
+            All
+            <span class="tab-count">@Model.Count</span>
+        </button>
+        <button class="tab-btn" data-tab="unread">
+            Unread
+            <span class="tab-count">@unread.Count</span>
+        </button>
+        <button class="tab-btn" data-tab="read">
+            Read
+            <span class="tab-count">@read.Count</span>
+        </button>
+    </div>
+
+    <div class="tab-panel active" id="panel-all">
+        @if (!Model.Any())
+        {
+            <div class="empty-state">No notifications yet.</div>
+        }
+        else
+        {
+            @foreach (var n in Model)
+            {
+                <div class="notif-row @(!n.IsRead ? "notif-unread" : "")" id="notif-@n.Id">
+                    <div class="notif-dot-col">
+                        @if (!n.IsRead)
+                        {
+                            <span class="notif-dot"></span>
+                        }
+                    </div>
+                    <div class="notif-body">
+                        <div class="notif-text">@n.Message</div>
+                        <div class="notif-time">
+                            <i class="fa-regular fa-clock"></i>
+                            @n.CreatedAt.ToString("MMM d, yyyy · h:mm tt")
+                        </div>
+                    </div>
+                    <button class="notif-dismiss-btn"
+                            onclick="dismissOne(@n.Id)"
+                            title="Dismiss">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            }
+        }
+    </div>
+
+    <div class="tab-panel" id="panel-unread">
+        @if (!unread.Any())
+        {
+            <div class="empty-state">No unread notifications — you're all caught up!</div>
+        }
+        else
+        {
+            @foreach (var n in unread)
+            {
+                <div class="notif-row notif-unread">
+                    <div class="notif-dot-col"><span class="notif-dot"></span></div>
+                    <div class="notif-body">
+                        <div class="notif-text">@n.Message</div>
+                        <div class="notif-time">
+                            <i class="fa-regular fa-clock"></i>
+                            @n.CreatedAt.ToString("MMM d, yyyy · h:mm tt")
+                        </div>
+                    </div>
+                    <button class="notif-dismiss-btn"
+                            onclick="dismissOne(@n.Id)"
+                            title="Dismiss">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            }
+        }
+    </div>
+
+    <div class="tab-panel" id="panel-read">
+        @if (!read.Any())
+        {
+            <div class="empty-state">No read notifications yet.</div>
+        }
+        else
+        {
+            @foreach (var n in read)
+            {
+                <div class="notif-row" id="notif-@n.Id">
+                    <div class="notif-dot-col"></div>
+                    <div class="notif-body">
+                        <div class="notif-text">@n.Message</div>
+                        <div class="notif-time">
+                            <i class="fa-regular fa-clock"></i>
+                            @n.CreatedAt.ToString("MMM d, yyyy · h:mm tt")
+                        </div>
+                    </div>
+                    <button class="notif-dismiss-btn"
+                            onclick="dismissOne(@n.Id)"
+                            title="Dismiss">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            }
+        }
+    </div>
+
+</div>
+
+<input type="hidden" id="af-token" value="" />
+<form id="af-form" style="display:none">@Html.AntiForgeryToken()</form>
+
+@section Scripts {
+    <script src="~/js/notifications.js"></script>
+    <script>
+        document.getElementById("af-token").value =
+            document.querySelector("#af-form [name=__RequestVerificationToken]").value;
+    </script>
+}

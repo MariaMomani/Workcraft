@@ -2,362 +2,394 @@
 @using Workcraft.Models.Enums
 @{
     Layout = "_UserLayout";
-    var allTasks = Model;
+
     var pending = Model.Where(t => t.Status == WorkTaskStatus.Pending).ToList();
-    var active = Model.Where(t => t.Status == WorkTaskStatus.InProgress).ToList();
-    var done = Model.Where(t => t.Status == WorkTaskStatus.Completed).ToList();
+    var inProgress = Model.Where(t => t.Status == WorkTaskStatus.InProgress).ToList();
+    var completed = Model.Where(t => t.Status == WorkTaskStatus.Completed).ToList();
     var rejected = Model.Where(t => t.Status == WorkTaskStatus.Rejected).ToList();
 }
 
 <div class="container mt-4" style="max-width: 980px;">
 
-    <div style="margin-bottom: 24px;">
-        <h2 style="font-size:26px;font-weight:600;color:#111827;margin:0 0 4px;">My Tasks</h2>
-        <p style="font-size:13px;color:#6b7280;margin:0;">Manage and track your assigned work</p>
-    </div>
+    <h2 style="font-size:26px; font-weight:600; color:#111827; margin-bottom:4px;">My Tasks</h2>
+    <p style="font-size:13px; color:#6b7280; margin-bottom:24px;">Manage and track your assigned work</p>
 
+    {{!-- Tab Buttons --}}
     <div class="tab-bar">
         <button class="tab-btn active" data-tab="all">
-            All Tasks
-            <span class="tab-count">@Model.Count</span>
+            All Tasks <span class="tab-count">@Model.Count</span>
         </button>
         <button class="tab-btn" data-tab="pending">
-            Pending
-            <span class="tab-count">@pending.Count</span>
+            Pending <span class="tab-count">@pending.Count</span>
         </button>
         <button class="tab-btn" data-tab="inprog">
-            In Progress
-            <span class="tab-count">@active.Count</span>
+            In Progress <span class="tab-count">@inProgress.Count</span>
         </button>
         <button class="tab-btn" data-tab="done">
-            Done
-            <span class="tab-count">@done.Count</span>
+            Done <span class="tab-count">@completed.Count</span>
         </button>
+        <button class="tab-btn" data-tab="rejected">
+            Rejected <span class="tab-count">@rejected.Count</span>
+        </button>
+    </div>
+
+    <div class="tab-panel active" id="panel-all">
+
+        @if (!Model.Any())
+        {
+            <div class="empty-state">No tasks assigned to you yet.</div>
+        }
+
+        @* Pending section *@
+        @if (pending.Any())
+        {
+            <p class="section-label">Pending</p>
+            <div class="table-wrap">
+                <table class="task-table">
+                    <thead>
+                        <tr>
+                            <th>Task</th>
+                            <th>Description</th>
+                            <th>Due Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var task in pending)
+                        {
+                            <tr>
+                                <td>@task.Title</td>
+                                <td>@task.Description</td>
+                                <td>
+                                    @if (task.DueDate.HasValue)
+                                    {
+                                        @task.DueDate.Value.ToString("MMM d, yyyy")
+                                    }
+                                    else
+                                    {
+                                        <span>No deadline</span>
+                                    }
+                                </td>
+                                <td>
+                                    {{!-- Accept button --}}
+                                    <form asp-action="AcceptTask" method="post" style="display:inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="taskId" value="@task.Id" />
+                                        <button type="submit" class="btn-action btn-accept">Accept</button>
+                                    </form>
+
+                                    {{!-- Reject button --}}
+                                    <form asp-action="RejectTask" method="post" style="display:inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="taskId" value="@task.Id" />
+                                        <button type="submit" class="btn-action btn-reject">Reject</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (inProgress.Any())
+        {
+            <p class="section-label">In Progress</p>
+            <div class="cards-grid">
+                @foreach (var task in inProgress)
+                {
+                    <div class="task-card inprog-card">
+                        <div class="card-top">
+                            <div class="card-title">@task.Title</div>
+                            <span class="badge badge-inprog">In Progress</span>
+                        </div>
+
+                        <div class="card-body">@task.Description</div>
+
+                        <div class="card-footer">
+                            <span>
+                                Due:
+                                @if (task.DueDate.HasValue)
+                                {
+                                    @task.DueDate.Value.ToString("MMM d, yyyy")
+                                }
+                                else
+                                {
+                                    <span>No deadline</span>
+                                }
+                            </span>
+
+                            {{!-- Mark as Done: status value 2 = Completed --}}
+                            <form asp-action="ChangeTaskStatus" method="post" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="taskId" value="@task.Id" />
+                                <input type="hidden" name="status" value="2" />
+                                <button type="submit" class="btn-done">Mark Done</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (completed.Any())
+        {
+            <p class="section-label">Completed</p>
+            <div class="cards-grid">
+                @foreach (var task in completed)
+                {
+                    <div class="task-card done-card">
+                        <div class="card-top">
+                            <div class="card-title">@task.Title</div>
+                            <span class="badge badge-done">Completed</span>
+                        </div>
+
+                        <div class="card-body">@task.Description</div>
+
+                        <div class="card-footer">
+                            <span>
+                                Due:
+                                @if (task.DueDate.HasValue)
+                                {
+                                    @task.DueDate.Value.ToString("MMM d, yyyy")
+                                }
+                                else
+                                {
+                                    <span>No deadline</span>
+                                }
+                            </span>
+
+                            {{!-- Reopen: status value 1 = InProgress --}}
+                            <form asp-action="ChangeTaskStatus" method="post" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="taskId" value="@task.Id" />
+                                <input type="hidden" name="status" value="1" />
+                                <button type="submit" class="btn-revert">Reopen</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
         @if (rejected.Any())
         {
-            <button class="tab-btn" data-tab="rejected">
-                Rejected
-                <span class="tab-count">@rejected.Count</span>
-            </button>
+            <p class="section-label">Rejected</p>
+            <div class="table-wrap">
+                <table class="task-table">
+                    <thead>
+                        <tr>
+                            <th>Task</th>
+                            <th>Description</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var task in rejected)
+                        {
+                            <tr>
+                                <td>@task.Title</td>
+                                <td>@task.Description</td>
+                                <td>
+                                    @if (task.DueDate.HasValue)
+                                    {
+                                        @task.DueDate.Value.ToString("MMM d, yyyy")
+                                    }
+                                    else
+                                    {
+                                        <span>No deadline</span>
+                                    }
+                                </td>
+                                <td><span class="badge badge-rejected">Rejected</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+    </div>
+
+    <div class="tab-panel" id="panel-pending">
+        @if (!pending.Any())
+        {
+            <div class="empty-state">No pending tasks right now.</div>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table class="task-table">
+                    <thead>
+                        <tr>
+                            <th>Task</th>
+                            <th>Description</th>
+                            <th>Due Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var task in pending)
+                        {
+                            <tr>
+                                <td>@task.Title</td>
+                                <td>@task.Description</td>
+                                <td>
+                                    @if (task.DueDate.HasValue)
+                                    {
+                                        @task.DueDate.Value.ToString("MMM d, yyyy")
+                                    }
+                                    else
+                                    {
+                                        <span>No deadline</span>
+                                    }
+                                </td>
+                                <td>
+                                    <form asp-action="AcceptTask" method="post" style="display:inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="taskId" value="@task.Id" />
+                                        <button type="submit" class="btn-action btn-accept">Accept</button>
+                                    </form>
+                                    <form asp-action="RejectTask" method="post" style="display:inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="taskId" value="@task.Id" />
+                                        <button type="submit" class="btn-action btn-reject">Reject</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         }
     </div>
 
-    @if (!Model.Any())
-    {
-        <div class="empty-state">No tasks assigned to you yet.</div>
-    }
-    else
-    {
-        <div class="tab-panel active" id="panel-all">
-            @if (pending.Any())
-            {
-                <p class="section-label">Pending</p>
-                <div class="table-wrap">
-                    <table class="task-table">
-                        <thead>
+    <div class="tab-panel" id="panel-inprog">
+        @if (!inProgress.Any())
+        {
+            <div class="empty-state">No tasks in progress right now.</div>
+        }
+        else
+        {
+            <div class="cards-grid">
+                @foreach (var task in inProgress)
+                {
+                    <div class="task-card inprog-card">
+                        <div class="card-top">
+                            <div class="card-title">@task.Title</div>
+                            <span class="badge badge-inprog">In Progress</span>
+                        </div>
+                        <div class="card-body">@task.Description</div>
+                        <div class="card-footer">
+                            <span>
+                                Due:
+                                @if (task.DueDate.HasValue)
+                                {
+                                    @task.DueDate.Value.ToString("MMM d, yyyy")
+                                }
+                                else
+                                {
+                                    <span>No deadline</span>
+                                }
+                            </span>
+                            <form asp-action="ChangeTaskStatus" method="post" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="taskId" value="@task.Id" />
+                                <input type="hidden" name="status" value="2" />
+                                <button type="submit" class="btn-done">Mark Done</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="tab-panel" id="panel-done">
+        @if (!completed.Any())
+        {
+            <div class="empty-state">No completed tasks yet.</div>
+        }
+        else
+        {
+            <div class="cards-grid">
+                @foreach (var task in completed)
+                {
+                    <div class="task-card done-card">
+                        <div class="card-top">
+                            <div class="card-title">@task.Title</div>
+                            <span class="badge badge-done">Completed</span>
+                        </div>
+                        <div class="card-body">@task.Description</div>
+                        <div class="card-footer">
+                            <span>
+                                Due:
+                                @if (task.DueDate.HasValue)
+                                {
+                                    @task.DueDate.Value.ToString("MMM d, yyyy")
+                                }
+                                else
+                                {
+                                    <span>No deadline</span>
+                                }
+                            </span>
+                            <form asp-action="ChangeTaskStatus" method="post" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="taskId" value="@task.Id" />
+                                <input type="hidden" name="status" value="1" />
+                                <button type="submit" class="btn-revert">Reopen</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="tab-panel" id="panel-rejected">
+        @if (!rejected.Any())
+        {
+            <div class="empty-state">No rejected tasks.</div>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table class="task-table">
+                    <thead>
+                        <tr>
+                            <th>Task</th>
+                            <th>Description</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var task in rejected)
+                        {
                             <tr>
-                                <th style="width:28%">Task</th>
-                                <th style="width:32%">Description</th>
-                                <th style="width:18%">Due date</th>
-                                <th style="width:22%">Actions</th>
+                                <td>@task.Title</td>
+                                <td>@task.Description</td>
+                                <td>
+                                    @if (task.DueDate.HasValue)
+                                    {
+                                        @task.DueDate.Value.ToString("MMM d, yyyy")
+                                    }
+                                    else
+                                    {
+                                        <span>No deadline</span>
+                                    }
+                                </td>
+                                <td><span class="badge badge-rejected">Rejected</span></td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var task in pending)
-                            {
-                                var od = task.DueDate.HasValue && task.DueDate.Value.Date < DateTime.Today;
-                                <tr>
-                                    <td><span class="task-name">@task.Title</span></td>
-                                    <td><span class="task-desc-cell">@task.Description</span></td>
-                                    <td>
-                                        <span class="due-chip @(od ? "overdue" : "")">
-                                            <svg width="13" height="13" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3" /><path d="M8 5v3.5l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" /></svg>
-                                            @(task.DueDate.HasValue? task.DueDate.Value.ToString("MMM d, yyyy") : "No deadline")
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div style="display:flex;gap:8px;justify-content:center;">
-                                            <form asp-action="AcceptTask" method="post" style="display:inline">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="taskId" value="@task.Id" />
-                                                <button type="submit" class="btn-action btn-accept">
-                                                    <svg width="12" height="12" fill="none" viewBox="0 0 16 16"><path d="M3 8l4 4 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>Accept
-                                                </button>
-                                            </form>
-                                            <form asp-action="RejectTask" method="post" style="display:inline">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="taskId" value="@task.Id" />
-                                                <button type="submit" class="btn-action btn-reject">
-                                                    <svg width="12" height="12" fill="none" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>Reject
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
 
-            @if (active.Any())
-            {
-                <p class="section-label">In Progress</p>
-                <div class="cards-grid">
-                    @foreach (var task in active)
-                    {
-                        var od = task.DueDate.HasValue && task.DueDate.Value.Date < DateTime.Today;
-                        <div class="task-card inprog-card">
-                            <div class="card-top">
-                                <div class="card-title">@task.Title</div>
-                                <span class="badge badge-inprog">In Progress</span>
-                            </div>
-                            <div class="card-body">@task.Description</div>
-                            <div class="card-footer">
-                                <span class="due-chip @(od ? "overdue" : "")">
-                                    <svg width="13" height="13" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3" /><path d="M8 5v3.5l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" /></svg>
-                                    Due @(task.DueDate.HasValue? task.DueDate.Value.ToString("MMM d, yyyy") : "No deadline")
-                                </span>
-                                <form asp-action="ChangeTaskStatus" asp-controller="User" method="post" style="display:inline">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="taskId" value="@task.Id" />
-                                    <input type="hidden" name="status" value="2" />
-                                    <button type="submit" class="btn-done">
-                                        <svg width="12" height="12" fill="none" viewBox="0 0 16 16"><path d="M3 8l4 4 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>Mark Done
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-
-            @if (done.Any())
-            {
-                <p class="section-label">Completed</p>
-                <div class="cards-grid">
-                    @foreach (var task in done)
-                    {
-                        <div class="task-card done-card">
-                            <div class="card-top">
-                                <div class="card-title">@task.Title</div>
-                                <span class="badge badge-done">Completed</span>
-                            </div>
-                            <div class="card-body">@task.Description</div>
-                            <div class="card-footer">
-                                <span class="due-chip">
-                                    <svg width="13" height="13" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3" /><path d="M8 5v3.5l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" /></svg>
-                                    Due @(task.DueDate.HasValue? task.DueDate.Value.ToString("MMM d, yyyy") : "No deadline")
-                                </span>
-                                <form asp-action="ChangeTaskStatus" asp-controller="User" method="post" style="display:inline">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="taskId" value="@task.Id" />
-                                    <input type="hidden" name="status" value="1" />
-                                    <button type="submit" class="btn-revert">Reopen</button>
-                                </form>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-
-            @if (rejected.Any())
-            {
-                <p class="section-label">Rejected</p>
-                <div class="table-wrap">
-                    <table class="task-table">
-                        <thead><tr><th>Task</th><th>Due date</th><th>Status</th></tr></thead>
-                        <tbody>
-                            @foreach (var task in rejected)
-                            {
-                                <tr>
-                                    <td>
-                                        <span class="task-name">@task.Title</span>
-                                        <div class="task-desc-cell" style="margin-top:3px">@task.Description</div>
-                                    </td>
-                                    <td>
-                                        <span class="due-chip">
-                                            <svg width="13" height="13" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3" /><path d="M8 5v3.5l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" /></svg>
-                                            @(task.DueDate.HasValue? task.DueDate.Value.ToString("MMM d, yyyy") : "No deadline")
-                                        </span>
-                                    </td>
-                                    <td><span class="badge badge-rejected">Rejected</span></td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
-        </div>
-
-        <div class="tab-panel" id="panel-pending">
-            @if (pending.Any())
-            {
-                <div class="table-wrap">
-                    <table class="task-table">
-                        <thead>
-                            <tr>
-                                <th style="width:28%">Task</th>
-                                <th style="width:32%">Description</th>
-                                <th style="width:18%">Due date</th>
-                                <th style="width:22%">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var task in pending)
-                            {
-                                var od = task.DueDate.HasValue && task.DueDate.Value.Date < DateTime.Today;
-                                <tr>
-                                    <td><span class="task-name">@task.Title</span></td>
-                                    <td><span class="task-desc-cell">@task.Description</span></td>
-                                    <td>
-                                        <span class="due-chip @(od ? "overdue" : "")">
-                                            <svg width="13" height="13" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3" /><path d="M8 5v3.5l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" /></svg>
-                                            @(task.DueDate.HasValue? task.DueDate.Value.ToString("MMM d, yyyy") : "No deadline")
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div style="display:flex;gap:8px;justify-content:center;">
-                                            <form asp-action="AcceptTask" method="post" style="display:inline">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="taskId" value="@task.Id" />
-                                                <button type="submit" class="btn-action btn-accept">
-                                                    <svg width="12" height="12" fill="none" viewBox="0 0 16 16"><path d="M3 8l4 4 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>Accept
-                                                </button>
-                                            </form>
-                                            <form asp-action="RejectTask" method="post" style="display:inline">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="taskId" value="@task.Id" />
-                                                <button type="submit" class="btn-action btn-reject">
-                                                    <svg width="12" height="12" fill="none" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>Reject
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
-            else
-            {
-                <div class="empty-state">No pending tasks — you're all caught up!</div>
-            }
-        </div>
-
-        <div class="tab-panel" id="panel-inprog">
-            @if (active.Any())
-            {
-                <div class="cards-grid">
-                    @foreach (var task in active)
-                    {
-                        var od = task.DueDate.HasValue && task.DueDate.Value.Date < DateTime.Today;
-                        <div class="task-card inprog-card">
-                            <div class="card-top">
-                                <div class="card-title">@task.Title</div>
-                                <span class="badge badge-inprog">In Progress</span>
-                            </div>
-                            <div class="card-body">@task.Description</div>
-                            <div class="card-footer">
-                                <span class="due-chip @(od ? "overdue" : "")">
-                                    <svg width="13" height="13" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3" /><path d="M8 5v3.5l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" /></svg>
-                                    Due @(task.DueDate.HasValue? task.DueDate.Value.ToString("MMM d, yyyy") : "No deadline")
-                                </span>
-                                <form asp-action="ChangeTaskStatus" asp-controller="User" method="post" style="display:inline">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="taskId" value="@task.Id" />
-                                    <input type="hidden" name="status" value="2" />
-                                    <button type="submit" class="btn-done">
-                                        <svg width="12" height="12" fill="none" viewBox="0 0 16 16"><path d="M3 8l4 4 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>Mark Done
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="empty-state">No tasks in progress right now.</div>
-            }
-        </div>
-
-        <div class="tab-panel" id="panel-done">
-            @if (done.Any())
-            {
-                <div class="cards-grid">
-                    @foreach (var task in done)
-                    {
-                        <div class="task-card done-card">
-                            <div class="card-top">
-                                <div class="card-title">@task.Title</div>
-                                <span class="badge badge-done">Completed</span>
-                            </div>
-                            <div class="card-body">@task.Description</div>
-                            <div class="card-footer">
-                                <span class="due-chip">
-                                    <svg width="13" height="13" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3" /><path d="M8 5v3.5l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" /></svg>
-                                    Due @(task.DueDate.HasValue? task.DueDate.Value.ToString("MMM d, yyyy") : "No deadline")
-                                </span>
-                                <form asp-action="ChangeTaskStatus" asp-controller="User" method="post" style="display:inline">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="taskId" value="@task.Id" />
-                                    <input type="hidden" name="status" value="1" />
-                                    <button type="submit" class="btn-revert">Reopen</button>
-                                </form>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="empty-state">No completed tasks yet — keep going!</div>
-            }
-        </div>
-
-        <div class="tab-panel" id="panel-rejected">
-            @if (rejected.Any())
-            {
-                <div class="table-wrap">
-                    <table class="task-table">
-                        <thead><tr><th>Task</th><th>Due date</th><th>Status</th></tr></thead>
-                        <tbody>
-                            @foreach (var task in rejected)
-                            {
-                                <tr>
-                                    <td>
-                                        <span class="task-name">@task.Title</span>
-                                        <div class="task-desc-cell" style="margin-top:3px">@task.Description</div>
-                                    </td>
-                                    <td>
-                                        <span class="due-chip">
-                                            <svg width="13" height="13" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3" /><path d="M8 5v3.5l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" /></svg>
-                                            @(task.DueDate.HasValue? task.DueDate.Value.ToString("MMM d, yyyy") : "No deadline")
-                                        </span>
-                                    </td>
-                                    <td><span class="badge badge-rejected">Rejected</span></td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
-        </div>
-    }
 </div>
 
-<script>
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tab = btn.dataset.tab;
-
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-
-            btn.classList.add('active');
-            document.getElementById('panel-' + tab).classList.add('active');
-        });
-    });
-</script>
+@section Scripts {
+    <script src="~/js/taskDetails.js"></script>
+}
