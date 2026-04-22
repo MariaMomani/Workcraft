@@ -114,12 +114,32 @@
 
                 <div class="emp-stat-row">
                     <span>Active Tasks</span>
-                    <span>—</span>
+                    <span>
+                        @if (Model.TaskStats.ContainsKey(employee.Id))
+                        {
+                            @Model.TaskStats[employee.Id].ActiveTasks
+                        }
+                        else
+                        {
+                            <span>0</span>
+                        }
+                    </span>
                 </div>
+
                 <div class="emp-stat-row">
                     <span>Completed</span>
-                    <span>—</span>
+                    <span>
+                        @if (Model.TaskStats.ContainsKey(employee.Id))
+                        {
+                            @Model.TaskStats[employee.Id].CompletedTasks
+                        }
+                        else
+                        {
+                            <span>0</span>
+                        }
+                    </span>
                 </div>
+
                 <div class="emp-stat-row">
                     <span>Email</span>
                     <span style="font-size:12px; font-weight:400; color:#6c757d">@employee.Email</span>

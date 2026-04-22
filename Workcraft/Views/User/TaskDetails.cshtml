@@ -14,7 +14,6 @@
     <h2 style="font-size:26px; font-weight:600; color:#111827; margin-bottom:4px;">My Tasks</h2>
     <p style="font-size:13px; color:#6b7280; margin-bottom:24px;">Manage and track your assigned work</p>
 
-    {{!-- Tab Buttons --}}
     <div class="tab-bar">
         <button class="tab-btn active" data-tab="all">
             All Tasks <span class="tab-count">@Model.Count</span>
@@ -40,7 +39,6 @@
             <div class="empty-state">No tasks assigned to you yet.</div>
         }
 
-        @* Pending section *@
         @if (pending.Any())
         {
             <p class="section-label">Pending</p>
@@ -71,14 +69,12 @@
                                     }
                                 </td>
                                 <td>
-                                    {{!-- Accept button --}}
                                     <form asp-action="AcceptTask" method="post" style="display:inline">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="taskId" value="@task.Id" />
                                         <button type="submit" class="btn-action btn-accept">Accept</button>
                                     </form>
 
-                                    {{!-- Reject button --}}
                                     <form asp-action="RejectTask" method="post" style="display:inline">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="taskId" value="@task.Id" />
@@ -119,7 +115,6 @@
                                 }
                             </span>
 
-                            {{!-- Mark as Done: status value 2 = Completed --}}
                             <form asp-action="ChangeTaskStatus" method="post" style="display:inline">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="taskId" value="@task.Id" />
@@ -159,7 +154,6 @@
                                 }
                             </span>
 
-                            {{!-- Reopen: status value 1 = InProgress --}}
                             <form asp-action="ChangeTaskStatus" method="post" style="display:inline">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="taskId" value="@task.Id" />

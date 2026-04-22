@@ -9,5 +9,9 @@
         public int CompletionRate { get; set; }
         public List<int> WeeklyCompleted { get; set; }
         public List<int> WeeklyInProgress { get; set; }
+
+        public int NewEmployeesThisMonth { get; set; }
+        public int TasksDueSoon { get; set; }
+        public int LastMonthCompletionRate { get; set; }
     }
 }

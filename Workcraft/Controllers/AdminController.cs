@@ -4,12 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Workcraft.Data;
+using Workcraft.Helpers;
 using Workcraft.Models;
 using Workcraft.Models.Enums;
 using Workcraft.Models.ViewModels;
 using Workcraft.Services;
 using Workcraft.ViewModels;
-using Workcraft.Helpers;
+using static Workcraft.Models.ViewModels.EmployeesPageViewModel;
 
 namespace Workcraft.Controllers
 {
@@ -35,33 +36,49 @@ namespace Workcraft.Controllers
         public async Task<IActionResult> Dashboard()
         {
             var users = await _userManager.GetUsersInRoleAsync("User");
-
             var totalEmployees = users.Count;
             var availableEmployees = users.Count(u => u.Status == "Available");
             var busyEmployees = users.Count(u => u.Status == "Busy");
-
             var tasks = _context.TaskItems.ToList();
+            var today = DateTime.Today;
 
+            // Completion rate this month
             var completedTasks = tasks.Count(t => t.Status == WorkTaskStatus.Completed);
             var totalTasks = tasks.Count;
-
             int completionRate = totalTasks > 0
                 ? (int)((double)completedTasks / totalTasks * 100)
                 : 0;
 
-            var today = DateTime.Today;
+            // New employees joined this month
+            var firstOfMonth = new DateTime(today.Year, today.Month, 1);
+            var newThisMonth = users.Count(u => u.CreatedAt >= firstOfMonth);
 
+            // Tasks due in the next 2 days
+            var dueSoon = tasks.Count(t =>
+                t.Status == WorkTaskStatus.InProgress &&
+                t.DueDate.HasValue &&
+                t.DueDate.Value.Date >= today &&
+                t.DueDate.Value.Date <= today.AddDays(2));
+
+            // Completion rate last month (for the +X% comparison)
+            var firstOfLastMonth = firstOfMonth.AddMonths(-1);
+            var lastMonthTasks = tasks.Where(t => t.CreatedAt >= firstOfLastMonth
+                                               && t.CreatedAt < firstOfMonth).ToList();
+            int lastMonthRate = lastMonthTasks.Count > 0
+                ? (int)((double)lastMonthTasks
+                    .Count(t => t.Status == WorkTaskStatus.Completed)
+                    / lastMonthTasks.Count * 100)
+                : 0;
+
+            // Weekly chart data
             var weeklyCompleted = new List<int>();
             var weeklyInProgress = new List<int>();
-
             for (int i = 6; i >= 0; i--)
             {
                 var day = today.AddDays(-i);
-
                 weeklyCompleted.Add(tasks.Count(t =>
                     t.Status == WorkTaskStatus.Completed &&
                     t.CreatedAt.Date == day));
-
                 weeklyInProgress.Add(tasks.Count(t =>
                     t.Status == WorkTaskStatus.InProgress &&
                     t.CreatedAt.Date == day));
@@ -75,7 +92,10 @@ namespace Workcraft.Controllers
                 TasksInProgress = tasks.Count(t => t.Status == WorkTaskStatus.InProgress),
                 CompletionRate = completionRate,
                 WeeklyCompleted = weeklyCompleted,
-                WeeklyInProgress = weeklyInProgress
+                WeeklyInProgress = weeklyInProgress,
+                NewEmployeesThisMonth = newThisMonth,
+                TasksDueSoon = dueSoon,
+                LastMonthCompletionRate = lastMonthRate
             };
 
             return View(model);
@@ -84,6 +104,19 @@ namespace Workcraft.Controllers
         public async Task<IActionResult> Employees()
         {
             var usersInRole = await _userManager.GetUsersInRoleAsync("User");
+            var tasks = await _context.TaskItems.ToListAsync();
+
+            // Build task stats for each employee
+            var taskStats = new Dictionary<string, EmployeeTaskStats>();
+            foreach (var user in usersInRole)
+            {
+                var userTasks = tasks.Where(t => t.AssignedToId == user.Id).ToList();
+                taskStats[user.Id] = new EmployeeTaskStats
+                {
+                    ActiveTasks = userTasks.Count(t => t.Status == WorkTaskStatus.InProgress),
+                    CompletedTasks = userTasks.Count(t => t.Status == WorkTaskStatus.Completed)
+                };
+            }
 
             var model = new EmployeesPageViewModel
             {
@@ -91,7 +124,8 @@ namespace Workcraft.Controllers
                 NewEmployee = new AddEmployeeViewModel(),
                 TotalEmployees = usersInRole.Count,
                 ActiveEmployees = usersInRole.Count(u => u.Status != "Busy" && u.Status != "Offline" && u.Status != "Break"),
-                BusyEmployees = usersInRole.Count(u => u.Status == "Busy")
+                BusyEmployees = usersInRole.Count(u => u.Status == "Busy"),
+                TaskStats = taskStats
             };
 
             return View(model);

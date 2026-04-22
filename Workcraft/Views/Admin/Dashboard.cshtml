@@ -18,45 +18,90 @@
 
     <div class="row g-4 mb-4">
 
+        @* Total Employees *@
         <div class="col-md-3">
             <div class="card dashboard-card">
                 <div>
                     <p>Total Employees</p>
                     <h3>@Model.TotalEmployees</h3>
-                    <span class="text-success small">↑ 2 new this month</span>
+                    @if (Model.NewEmployeesThisMonth > 0)
+                    {
+                        <span class="text-success small">
+                            ↑ @Model.NewEmployeesThisMonth new this month
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="text-muted small">No new employees this month</span>
+                    }
                 </div>
                 <i class="fa fa-users icon"></i>
             </div>
         </div>
 
+        @* Available Now *@
         <div class="col-md-3">
             <div class="card dashboard-card">
                 <div>
                     <p>Available Now</p>
                     <h3>@Model.AvailableEmployees</h3>
-                    <span class="text-success small">↑ Ready</span>
+                    @if (Model.BusyEmployees > 0)
+                    {
+                        <span class="text-warning small">
+                            ↓ @Model.BusyEmployees busy
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="text-success small">↑ All ready</span>
+                    }
                 </div>
                 <i class="fa fa-check-circle icon"></i>
             </div>
         </div>
 
+        @* Active Tasks *@
         <div class="col-md-3">
             <div class="card dashboard-card">
                 <div>
                     <p>Active Tasks</p>
                     <h3>@Model.TasksInProgress</h3>
-                    <span class="text-danger small">↓ Due soon</span>
+                    @if (Model.TasksDueSoon > 0)
+                    {
+                        <span class="text-danger small">
+                            ↓ @Model.TasksDueSoon due within 2 days
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="text-success small">↑ No urgent deadlines</span>
+                    }
                 </div>
                 <i class="fa fa-clock icon"></i>
             </div>
         </div>
 
+        @* Completion Rate *@
         <div class="col-md-3">
             <div class="card dashboard-card">
                 <div>
                     <p>Completion Rate</p>
                     <h3>@Model.CompletionRate%</h3>
-                    <span class="text-success small">↑ +5%</span>
+                    @{
+                        int diff = Model.CompletionRate - Model.LastMonthCompletionRate;
+                    }
+                    @if (diff > 0)
+                    {
+                        <span class="text-success small">↑ +@diff% from last month</span>
+                    }
+                    else if (diff < 0)
+                    {
+                        <span class="text-danger small">↓ @diff% from last month</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted small">same as last month</span>
+                    }
                 </div>
                 <i class="fa fa-chart-line icon"></i>
             </div>
