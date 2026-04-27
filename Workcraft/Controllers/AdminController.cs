@@ -42,25 +42,21 @@ namespace Workcraft.Controllers
             var tasks = _context.TaskItems.ToList();
             var today = DateTime.Today;
 
-            // Completion rate this month
             var completedTasks = tasks.Count(t => t.Status == WorkTaskStatus.Completed);
             var totalTasks = tasks.Count;
             int completionRate = totalTasks > 0
                 ? (int)((double)completedTasks / totalTasks * 100)
                 : 0;
 
-            // New employees joined this month
             var firstOfMonth = new DateTime(today.Year, today.Month, 1);
             var newThisMonth = users.Count(u => u.CreatedAt >= firstOfMonth);
 
-            // Tasks due in the next 2 days
             var dueSoon = tasks.Count(t =>
                 t.Status == WorkTaskStatus.InProgress &&
                 t.DueDate.HasValue &&
                 t.DueDate.Value.Date >= today &&
                 t.DueDate.Value.Date <= today.AddDays(2));
 
-            // Completion rate last month (for the +X% comparison)
             var firstOfLastMonth = firstOfMonth.AddMonths(-1);
             var lastMonthTasks = tasks.Where(t => t.CreatedAt >= firstOfLastMonth
                                                && t.CreatedAt < firstOfMonth).ToList();
@@ -70,7 +66,6 @@ namespace Workcraft.Controllers
                     / lastMonthTasks.Count * 100)
                 : 0;
 
-            // Weekly chart data
             var weeklyCompleted = new List<int>();
             var weeklyInProgress = new List<int>();
             for (int i = 6; i >= 0; i--)
@@ -106,7 +101,6 @@ namespace Workcraft.Controllers
             var usersInRole = await _userManager.GetUsersInRoleAsync("User");
             var tasks = await _context.TaskItems.ToListAsync();
 
-            // Build task stats for each employee
             var taskStats = new Dictionary<string, EmployeeTaskStats>();
             foreach (var user in usersInRole)
             {
